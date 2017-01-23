@@ -1,0 +1,52 @@
+/*
+Map Allocations Prod (el reduce se _sum)
+*************************************
+*/
+function (doc, meta) {
+   if (doc._type=="Order"){
+     for (i=0;i < doc.suborders.length;i++){ 
+       for (j=0; j<doc.suborders[i].items.length;j++){
+         	var item_id= doc.suborders[i].items[j].item_id
+                var store_id = doc.suborders[i].store_id
+                var quantity= doc.suborders[i].items[j].quantity
+       		emit ([item_id,store_id], quantity)
+             }
+      }
+   }
+}
+
+/*
+Map Allocations Dev(el reduce se _sum)
+***************************************
+*/
+function (doc, meta) {
+   if (doc._type==="Order"){
+     for (i=0;i < doc.suborders.length;i++){ 
+       for (j=0; j<doc.suborders[i].items.length;j++){
+         	var item_id= doc.suborders[i].items[j].item_id
+                var store_id = doc.suborders[i].store_id
+                var quantity= doc.suborders[i].items[j].quantity
+                if (doc.suborders[i].state==="ALLOCATED"){
+              		emit ([item_id,store_id], quantity)
+                }
+             }
+      }
+   }
+}
+
+/*
+Map Allocations2 dev (el reduce es _sum)
+************************************
+
+function (doc, meta) {
+   if (doc._type=="Order"){
+     for (i=0;i < doc.suborders.length;i++){ 
+       for (j=0; j<doc.suborders[i].items.length;j++){
+         	var item_id= doc.suborders[i].items[j].item_id
+                var store_id = doc.suborders[i].store_id
+                var quantity= doc.suborders[i].items[j].quantity
+       		emit ([item_id,store_id], quantity)
+             }
+      }
+   }
+}

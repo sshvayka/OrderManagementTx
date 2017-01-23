@@ -45,12 +45,16 @@ public class Main {
         CBconfig db = new CBconfig();
         db.bucket=Main.BUCKET;
 
-        //code for generating facke data in Couchbase
 
-        /*CBDataGenerator generator = new CBDataGenerator(db);
+        /*
+        //code for generating fake data in Couchbase
+        CBDataGenerator generator = new CBDataGenerator(db);
         generator.createItems(500, 100);
         //generator.createOrders(500);
-        generator.close();*/
+        generator.close();
+        log.info("Random items created");
+
+        */
 
         //kafka topics creation for the whole scenario
         KafkaBroker kafka = new KafkaBroker();
@@ -58,44 +62,47 @@ public class Main {
         kafka.createTopic("StockVisibility");
         kafka.createTopic("OrderFulfillment");
         kafka.createTopic("Sourcing");
+        log.info("Kafka topics created");
+
 
         //Request
-        Thread orderRequests = new Thread (new RequestGenerator(kafka, 300, 100, 20));
+        Thread orderRequests = new Thread (new RequestGenerator(kafka, 1, 100, 20),"OrderRequest");
+        orderRequests.start();
+        //orderRequests.join();
+        log.info("RequestGenerator created");
+
 
         //OrderManagement pull
         ArrayList<Thread> orderManagement = new ArrayList<Thread>();
         for (int i=0; i< Main.N_ORDER_MANAGEMENT;i++){
-            Thread t= new Thread (new OrderManagement(kafka, db, "out.txt"));
+            Thread t= new Thread (new OrderManagement(kafka, db, "out.txt"), "OrderManagement"+i);
             t.start();
-            t.join();
             orderManagement.add(t);
         }
 
         //StockVisibility pull
         ArrayList<Thread> stockVisibility = new ArrayList<Thread>();
         for (int i=0; i< Main.N_STOCK_VISIBILITY;i++){
-            Thread t= new Thread(new StockVisibility(kafka,db));
+            Thread t= new Thread(new StockVisibility(kafka,db), "StockVisibility"+i);
             t.start();
-            t.join();
             stockVisibility.add(t);
         }
 
         //OrderFulfillment pull
         ArrayList<Thread> orderFulfillment = new ArrayList<Thread>();
-        for (int i=0; i< Main.N_STOCK_VISIBILITY;i++){
-            Thread t= new Thread (new OrderFulfillment(kafka, db));
+        for (int i=0; i< Main.N_ORDER_FUFILLMENT;i++){
+            Thread t= new Thread (new OrderFulfillment(kafka, db), "orderFulfillment"+i);
             t.start();
-            t.join();
             orderFulfillment.add(t);
         }
 
         //Sourcing pull
         ArrayList<Thread> sourcing = new ArrayList<Thread>();
-        for (int i=0; i< Main.N_STOCK_VISIBILITY;i++){
+        for (int i=0; i< Main.N_SOURCING;i++){
             Thread t= new  Thread(new SourcingPL(kafka, db));
             //Thread t = new Thread(new SourcingOL(kafka, db));
             t.start();
-            t.join();
+            //t.join();
             sourcing.add(t);
         }
 
@@ -104,6 +111,7 @@ public class Main {
                                                                 Main.N_ORDER_FUFILLMENT, Main.N_SOURCING));
         control.start();
         control.join();
+
 
         log.info("FINISH");
         long total = System.currentTimeMillis() - init;

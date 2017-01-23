@@ -34,7 +34,7 @@ public abstract class MicroService implements Runnable {
         this.type=type;
         this.instance = UUID.randomUUID();
         this.topic_subscription=topic;
-        log.debug("Microservice thread created");
+        log.info("Microservice thread created");
         if (db!=null) {
             this.db=db;
             this.finish = false;

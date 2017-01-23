@@ -46,6 +46,7 @@ public class StockVisibility extends MicroService {
             for (String store_id: stores) {
                 //the document_id is store_id-item_id
                 String id = store_id +"-"+item_id;
+                log.info(id);
                 JsonDocument found = bucket.get(id);
                 if (found != null){
                     Integer quantity=  found.content().getInt("quantity")-1; //1 item is 0 to use atomic opr

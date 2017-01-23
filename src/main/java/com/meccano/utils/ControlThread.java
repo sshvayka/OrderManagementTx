@@ -1,7 +1,9 @@
 package com.meccano.utils;
 
+import com.meccano.Main;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
+import org.apache.log4j.Logger;
 
 /**
  * Created by ruben.casado.tejedor on 29/12/2016.
@@ -16,6 +18,8 @@ public class ControlThread implements Runnable {
     protected int n_sv;
     protected int n_of;
     protected int n_so;
+    static Logger log = Logger.getLogger(Main.class.getName());
+
 
     public ControlThread(KafkaBroker kafka, int n_om, int n_sv, int of, int so){
         this.kafka=kafka;
@@ -32,21 +36,28 @@ public class ControlThread implements Runnable {
             for (int i=0; i<this.n_sv;i++) {
                 KafkaMessage message = new KafkaMessage("StockVisibility", "Kill", null, null, null);
                 this.kafka.putMessage("StockVisibility", message);
+                log.info("StockVisibility kill message");
             }
             for (int i=0; i<this.n_of;i++) {
                 KafkaMessage message = new KafkaMessage("OrderFulfillment", "Kill", null, null, null);
                 this.kafka.putMessage("OrderFulfillment", message);
+                log.info("OrderFulfillment kill message");
+
             }
             for (int i=0; i<this.n_so;i++) {
                 KafkaMessage message = new KafkaMessage("Sourcing", "Kill", null, null, null);
                 this.kafka.putMessage("Sourcing", message);
+                log.info("Sourcing kill message");
+
             }
             for (int i=0; i<this.n_om;i++) {
                 KafkaMessage message = new KafkaMessage("OrderManagement", "Kill", null, null, null);
                 this.kafka.putMessage("OrderManagement", message);
+                log.info("OrderManagement kill message");
+
             }
         }
-
+        log.info("Control ends");
 
     }
 

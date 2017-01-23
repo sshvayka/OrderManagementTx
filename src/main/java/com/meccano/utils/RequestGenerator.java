@@ -1,11 +1,13 @@
 package com.meccano.utils;
 
 
+import com.meccano.Main;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
 import com.meccano.microservices.OrderFulfillmentRequest;
 import com.meccano.microservices.OrderManagementRequest;
 import com.meccano.microservices.StockVisibilityRequest;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -20,12 +22,16 @@ public class RequestGenerator implements Runnable {
     protected int n_orders;
     protected int frequency;
     protected int variety;
+    static Logger log = Logger.getLogger(Main.class.getName());
+
 
     public RequestGenerator (KafkaBroker kafka, int num, int fre, int var){
+
         this.kafka=kafka;
         this.n_orders=num;
         this.frequency=fre;
         this.variety=var;
+
     }
 
 
