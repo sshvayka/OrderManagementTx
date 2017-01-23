@@ -24,7 +24,7 @@ public class StockVisibility extends MicroService {
 
     public StockVisibility(KafkaBroker kafka, CBconfig db){
         super("StockVisibility", kafka, "StockVisibility",db);
-        log.debug("StockVisibility MS thread created");
+        log.info("StockVisibility MS thread created");
 
     }
 
@@ -46,7 +46,7 @@ public class StockVisibility extends MicroService {
             for (String store_id: stores) {
                 //the document_id is store_id-item_id
                 String id = store_id +"-"+item_id;
-                log.info(id);
+                log.debug(id);
                 JsonDocument found = bucket.get(id);
                 if (found != null){
                     Integer quantity=  found.content().getInt("quantity")-1; //1 item is 0 to use atomic opr

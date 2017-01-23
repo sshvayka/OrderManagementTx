@@ -57,6 +57,7 @@ public class OrderManagement extends MicroService {
             File oFile = new File(this.path).getAbsoluteFile();
             if (!oFile.exists()) {
                 oFile.createNewFile();
+                log.info("crated file: "+this.path);
             }
             //log the information
             if (oFile.canWrite()) {
@@ -117,13 +118,16 @@ public class OrderManagement extends MicroService {
 
     protected void exit() {
         try {
-                this.bucket.close();
-                this.cluster.disconnect();
-                this.file.close();
+                //this.bucket.close();
+                log.info("OM - bucket closed");
+                //this.cluster.disconnect();
+                //log.info("OM - cluster disconnected");
+                if (this.file != null )
+                    this.file.close();
                 log.info("OrderManagement exit");
 
             } catch (Exception e) {
-                log.error(e.toString());
+                log.error(" Exit: "+ e.toString());
             }
     }
 

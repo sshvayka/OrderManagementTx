@@ -31,33 +31,46 @@ public class ControlThread implements Runnable {
 
     public void run() {
         //check number of pending requests (messages in Kafka)
-        if (this.kafka.totalSize()==0){
-            //Send kafka message to all microservices to kill them
-            for (int i=0; i<this.n_sv;i++) {
-                KafkaMessage message = new KafkaMessage("StockVisibility", "Kill", null, null, null);
-                this.kafka.putMessage("StockVisibility", message);
-                log.info("StockVisibility kill message");
-            }
-            for (int i=0; i<this.n_of;i++) {
-                KafkaMessage message = new KafkaMessage("OrderFulfillment", "Kill", null, null, null);
-                this.kafka.putMessage("OrderFulfillment", message);
-                log.info("OrderFulfillment kill message");
+        log.info("ControlThread - Nº Kafka Sms: "+ this.kafka.totalSize());
 
-            }
-            for (int i=0; i<this.n_so;i++) {
-                KafkaMessage message = new KafkaMessage("Sourcing", "Kill", null, null, null);
-                this.kafka.putMessage("Sourcing", message);
-                log.info("Sourcing kill message");
-
-            }
-            for (int i=0; i<this.n_om;i++) {
-                KafkaMessage message = new KafkaMessage("OrderManagement", "Kill", null, null, null);
-                this.kafka.putMessage("OrderManagement", message);
-                log.info("OrderManagement kill message");
-
-            }
+        //wait until all kafka messages has been procceded
+        int pending = this.kafka.totalSize();
+        while (pending!=0){
+            pending = this.kafka.totalSize();
         }
-        log.info("Control ends");
+
+        //wait until live threads process current sms
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        //Send kafka message to all microservices to kill them
+        for (int i=0; i<this.n_sv;i++) {
+            KafkaMessage message = new KafkaMessage("StockVisibility", "Kill", null, null, null);
+            this.kafka.putMessage("StockVisibility", message);
+            log.info("StockVisibility kill message");
+        }
+        for (int i=0; i<this.n_of;i++) {
+            KafkaMessage message = new KafkaMessage("OrderFulfillment", "Kill", null, null, null);
+            this.kafka.putMessage("OrderFulfillment", message);
+            log.info("OrderFulfillment kill message");
+
+        }
+        for (int i=0; i<this.n_so;i++) {
+            KafkaMessage message = new KafkaMessage("Sourcing", "Kill", null, null, null);
+            this.kafka.putMessage("Sourcing", message);
+            log.info("Sourcing kill message");
+
+        }
+        for (int i=0; i<this.n_om;i++) {
+            KafkaMessage message = new KafkaMessage("OrderManagement", "Kill", null, null, null);
+            this.kafka.putMessage("OrderManagement", message);
+            log.info("OrderManagement kill message");
+
+        }
+
+        log.info("Control exit");
 
     }
 

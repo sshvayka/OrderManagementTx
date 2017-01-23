@@ -29,10 +29,10 @@ public class Main {
     static Logger log = Logger.getLogger(Main.class.getName());
 
     // hard-coded parameters
-    static int N_ORDER_MANAGEMENT =1;
-    static int N_STOCK_VISIBILITY =1;
-    static int N_ORDER_FUFILLMENT =1;
-    static int N_SOURCING =1;
+    static int N_ORDER_MANAGEMENT =15;
+    static int N_STOCK_VISIBILITY =8;
+    static int N_ORDER_FUFILLMENT =13;
+    static int N_SOURCING =31;
     static String BUCKET= "mecanno";
 
 
@@ -66,7 +66,7 @@ public class Main {
 
 
         //Request
-        Thread orderRequests = new Thread (new RequestGenerator(kafka, 1, 100, 20),"OrderRequest");
+        Thread orderRequests = new Thread (new RequestGenerator(kafka, 500, 100, 20),"OrderRequest");
         orderRequests.start();
         //orderRequests.join();
         log.info("RequestGenerator created");
@@ -108,11 +108,11 @@ public class Main {
 
         //Control thread to kill all threads when all requests are processed
         Thread control= new Thread(new ControlThread(kafka, Main.N_ORDER_MANAGEMENT, Main.N_STOCK_VISIBILITY,
-                                                                Main.N_ORDER_FUFILLMENT, Main.N_SOURCING));
+                                                                Main.N_ORDER_FUFILLMENT, Main.N_SOURCING), "ControlThread");
         control.start();
         control.join();
 
-
+        db.cluster.disconnect();
         log.info("FINISH");
         long total = System.currentTimeMillis() - init;
         log.info("Time: "+ total );
