@@ -8,7 +8,6 @@ import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
 import com.meccano.utils.CBconfig;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -35,31 +34,28 @@ public class OrderFulfillment extends MicroService {
             //for each item, get the allocation of each associate store
             String item_id = itr.next();
             for (String s: request.stores){
-                    //["item_id","store_id"]
-                    JsonArray j = JsonArray.create();
-                    j.add(item_id);
-                    j.add(s);
-                    keys.add(j);
-
+                //["item_id","store_id"]
+                JsonArray j = JsonArray.create();
+                j.add(item_id);
+                j.add(s);
+                keys.add(j);
             }
-
-            ViewQuery query= ViewQuery.from("OrderFulfillment","allocations").group().reduce().keys(keys);
+            ViewQuery query = ViewQuery.from("OrderFulfillment","allocations").group().reduce().keys(keys);
             ViewResult result = this.bucket.query(query);
             List<ViewRow> row_result = result.allRows();
-            log.debug(request.order_id+" Resultados MapReduce:" + row_result.size());
+            log.debug(request.order_id + " Resultados MapReduce:" + row_result.size());
             results.put(item_id, row_result);
         }
 
-        OrderFulfillmentResponse body = new OrderFulfillmentResponse(request.order_id,results,request.stockVisibilityResponse);
+        OrderFulfillmentResponse body = new OrderFulfillmentResponse(request.order_id, results, request.stockVisibilityResponse);
         //put in kafka the response message
         KafkaMessage msg = new KafkaMessage("OrderManagement","OrderFulfillmentResponse", body, this.getType(), message.getSource());
         this.kafka.putMessage("OrderManagement", msg);
-        log.debug(request.order_id+" - Created Kafka message in topic OrderManagement. Type: OrderFulfillmentResponse");
+        log.debug(request.order_id + " - Created Kafka message in topic OrderManagement. Type: OrderFulfillmentResponse");
     }
 
     protected void exit() {
         log.info("OrderFulfillment exit");
-
     }
 
     protected ArrayList<String> getStores(){

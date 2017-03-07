@@ -8,14 +8,13 @@ import com.meccano.kafka.KafkaMessage;
 import com.meccano.utils.CBconfig;
 import com.meccano.utils.MultiDocumentTransactionManager;
 import com.meccano.utils.Pair;
-import com.meccano.utils.Tuple3;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ruben.casado.tejedor on 06/09/2016.
@@ -23,52 +22,51 @@ import java.util.concurrent.TimeUnit;
 public class SourcingOL extends MicroService {
 
     protected int locking_time;
-    static Logger log = Logger.getLogger(SourcingOL.class.getName());
+    static Logger log = LogManager.getLogger(SourcingOL.class.getName());
 
 
     public SourcingOL(KafkaBroker kafka, CBconfig db){
         super("SourcingOL",kafka,"Sourcing", db);
-        this.locking_time= 30;
+        this.locking_time = 30;
     }
 
     public SourcingOL(KafkaBroker kafka, CBconfig db, int time){
-        super("SourcingOL",kafka,"Sourcing", db);
-        this.locking_time=time;
+        super("SourcingOL", kafka,"Sourcing", db);
+        this.locking_time = time;
     }
 
     protected String getRandomStore(StockVisibilityResponse stock, OrderFulfillmentResponse allocations, String item_id, int quantity){
-        String store_id=null;
-        ArrayList<Pair<String, Integer>> stocks= stock.stocks.get(item_id);
-        boolean allocated=false;
-        for (int i=0; i< stocks.size()&& !allocated;i++){
-            String s_id= stocks.get(i).key;
-            int store_stock= stocks.get(i).value.intValue();
-            log.debug("Item to query: "+ item_id);
-            log.debug("Store to query: "+ s_id);
-            Hashtable<String, Integer> t= allocations.results.get(item_id);
+        String store_id = null;
+        ArrayList<Pair<String, Integer>> stocks = stock.stocks.get(item_id);
+        boolean allocated = false;
+        for (int i = 0; i< stocks.size() && !allocated; i++){
+            String s_id = stocks.get(i).key;
+            int store_stock = stocks.get(i).value.intValue();
+            log.debug("Item to query: " + item_id);
+            log.debug("Store to query: " + s_id);
+            Hashtable<String, Integer> t = allocations.results.get(item_id);
 
             int store_allocations;
             if (t.containsKey(s_id))
                 store_allocations = t.get(s_id);
             else
-                store_allocations=0;
+                store_allocations = 0;
 
-            if (store_stock -store_allocations>=quantity){
-
-                log.debug("[ALLOCATED] Item: "+item_id+" Store: "+s_id+ " Store stock: "+store_stock+ " Store allocations: "+store_allocations+ " Requested: "+quantity);
-                store_id= s_id;
-                allocated=true;
+            if (store_stock - store_allocations >= quantity){
+                log.debug("[ALLOCATED] Item: "+item_id + " Store: " + s_id + " Store stock: " + store_stock + " Store allocations: " + store_allocations + " Requested: " + quantity);
+                store_id = s_id;
+                allocated = true;
             }
 
             else{
-                log.debug("[REJECTED] Item: "+item_id+" Store: "+s_id+ " Store stock: "+store_stock+ " Store allocations: "+store_allocations+ " Requested: "+quantity);
-                store_id=null;
+                log.debug("[REJECTED] Item: " + item_id+" Store: " + s_id + " Store stock: " + store_stock + " Store allocations: " + store_allocations + " Requested: " + quantity);
+                store_id = null;
             }
 
         }
-        if (store_id== null)
+        if (store_id == null)
             return null;
-        return store_id+"-"+item_id;
+        return store_id + "-" + item_id;
     }
 
     protected void processMessage(KafkaMessage message) {
@@ -86,15 +84,15 @@ public class SourcingOL extends MicroService {
                 .put("order_id", request.order_id.toString())
                 .put("state", "ALLOCATED");
         JsonArray suborders = JsonArray.create();
-        int j=0;
-        boolean success=true;
+        int j = 0;
+        boolean success = true;
         while (itr.hasNext() && success) {
             String stock_id = itr.next();
             //get a random store with enough stock
             String id = this.getRandomStore(request.stocks, request.allocations, stock_id, (Integer) request.quantity.get(stock_id));
             //create locking_document
             if (id != null && tx.createLockDocument(id)) {
-                log.debug("Lock document created: " + id+"_lock");
+                log.debug("Lock document created: " + id + "_lock");
 
                 // here we could use atomic operation to decrement phisic stock but we use the same
                 // approach used in SourcingPL --> create the order document
@@ -121,9 +119,8 @@ public class SourcingOL extends MicroService {
                 log.debug("Transaction compensated");
                 tx.rollback();
                 //tx.close();
-                success=false;
+                success = false;
             }
-
         }
         SourcingResponse body;
 
@@ -142,17 +139,12 @@ public class SourcingOL extends MicroService {
             body = new SourcingResponse(request.order_id, false);
         }
 
-
         //put in kafka the response message
         KafkaMessage msg = new KafkaMessage("OrderManagement", "SourcingResponse", body, this.getType(), message.getSource());
         this.kafka.putMessage("OrderManagement", msg);
-
     }
-
-
 
     protected void exit() {
         log.info("SourcingOL exit");
-
     }
 }

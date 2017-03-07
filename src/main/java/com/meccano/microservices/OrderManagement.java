@@ -3,11 +3,10 @@ package com.meccano.microservices;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
 import com.meccano.utils.CBconfig;
-import com.meccano.utils.Pair;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -17,18 +16,17 @@ public class OrderManagement extends MicroService {
 
     protected BufferedWriter file;
     protected String path;
-    static Logger log = Logger.getLogger(OrderManagement.class.getName());
+    static Logger log = LogManager.getLogger(OrderManagement.class.getName());
 
     public OrderManagement(KafkaBroker kafka, CBconfig db, String path) throws IOException {
         super ("OrderManagement", kafka, "OrderManagement", db);
-        this.path=path;
-
+        this.path = path;
     }
 
     protected void processOrderRequest(OrderManagementRequest request){
         //create the StockVisibility request and send message to Kafka
         StockVisibilityRequest sr = new StockVisibilityRequest(request);
-        KafkaMessage message = new KafkaMessage("StockVisibility","StockVisibilityRequest",sr, this.getType(),"StockVisibility");
+        KafkaMessage message = new KafkaMessage("StockVisibility", "StockVisibilityRequest", sr, this.getType(),"StockVisibility");
         this.kafka.putMessage("StockVisibility", message);
 
     }
@@ -36,7 +34,7 @@ public class OrderManagement extends MicroService {
     protected void processStockVisibilityResponse (StockVisibilityResponse response){
         // TO DO
         OrderFulfillmentRequest of = new OrderFulfillmentRequest(response);
-        KafkaMessage message = new KafkaMessage("OrderFulfillment","OrderFulfillmentRequest",of, this.getType(),"OrderFulfillment");
+        KafkaMessage message = new KafkaMessage("OrderFulfillment","OrderFulfillmentRequest", of, this.getType(),"OrderFulfillment");
         this.kafka.putMessage("OrderFulfillment", message);
     }
 
@@ -49,19 +47,17 @@ public class OrderManagement extends MicroService {
             this.kafka.putMessage("Sourcing", msg);
         }
 
-
     protected synchronized void processSourcingResponse(SourcingResponse response)  {
-        long finish_time =System.currentTimeMillis();
+        long finish_time = System.currentTimeMillis();
         try {
-
             File oFile = new File(this.path).getAbsoluteFile();
             if (!oFile.exists()) {
                 oFile.createNewFile();
-                log.info("crated file: "+this.path);
+                log.info("Created file: " + this.path);
             }
-            //log the information
+            // Log the information
             if (oFile.canWrite()) {
-                this.file=  new BufferedWriter(new FileWriter(this.path,true));
+                this.file =  new BufferedWriter(new FileWriter(this.path,true));
                 //order_id
                 this.file.write(response.order_id.toString());
                 this.file.write(",");
@@ -78,21 +74,16 @@ public class OrderManagement extends MicroService {
         }
         catch (IOException oException) {
             log.error("[ERROR] OrderManagement: Error appending/File cannot be written:" + this.path);
-
         }
-
     }
 
-
     public void run(){
-
-        //process intermediate results until the end of the order responses
+        // Process intermediate results until the end of the order responses
         while (!this.finish){
             KafkaMessage message = consumMessage();
-
-            if (message!=null){
-                log.debug("Current message:"+message.getType());
-                if (message.getType()=="OrderManagementRequest")
+            if (message != null){
+                log.debug("Current message:" + message.getType());
+                if (message.getType() == "OrderManagementRequest")
                     this.processOrderRequest((OrderManagementRequest)message.getMessageBody());
                 else if (message.getType()=="SourcingResponse")
                     this.processSourcingResponse((SourcingResponse) message.getMessageBody());
@@ -103,32 +94,30 @@ public class OrderManagement extends MicroService {
                 else if (message.getType()=="Kill") {
                     this.exit();
                     this.finish = true;
-                }
-                else
-                    log.error("[ERROR] OrderManagemnet: unknow message "+message.getType());
+                } else
+                    log.error("[ERROR] OrderManagemnet: unknow message " + message.getType());
             }
         }
-
     }
 
-    //method from MicroService class. Not used here since run() has been re-implemented
+    //Method from MicroService class. Not used here since run() has been re-implemented
     protected void processMessage(KafkaMessage message) {
 
     }
 
     protected void exit() {
         try {
-                //this.bucket.close();
-                log.info("OM - bucket closed");
-                //this.cluster.disconnect();
-                //log.info("OM - cluster disconnected");
-                if (this.file != null )
-                    this.file.close();
-                log.info("OrderManagement exit");
+            //this.bucket.close();
+            log.info("OM - bucket closed");
+            //this.cluster.disconnect();
+            //log.info("OM - cluster disconnected");
+            if (this.file != null )
+                this.file.close();
+            log.info("OrderManagement exit");
 
-            } catch (Exception e) {
-                log.error(" Exit: "+ e.toString());
-            }
+        } catch (Exception e) {
+            log.error(" Exit: "+ e.toString());
+        }
     }
 
     protected ArrayList<String> getStores(){

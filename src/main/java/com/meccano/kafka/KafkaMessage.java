@@ -12,18 +12,20 @@ public class KafkaMessage {
     protected String topic;
 
     public KafkaMessage(String topic, String type, MessageBody body, String source, String destination) {
-        this.topic=topic;
+        this.topic = topic;
         this.type = type;
-        this.source=source;
-        this.destination=destination;
-        this.body=body;
+        this.source = source;
+        this.destination = destination;
+        this.body = body;
     }
 
     public String getType(){
         return this.type;
     }
+
     public MessageBody getMessageBody (){
         return this.body;
     }
+
     public String getSource(){ return this.source;}
 }

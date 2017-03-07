@@ -10,8 +10,8 @@ public class Tuple3<K,V,T> {
     public T e3;
 
     public Tuple3(K first, V second,T third ){
-        this.e1=first;
-        this.e2=second;
-        this.e3=third;
+        this.e1 = first;
+        this.e2 = second;
+        this.e3 = third;
     }
 }

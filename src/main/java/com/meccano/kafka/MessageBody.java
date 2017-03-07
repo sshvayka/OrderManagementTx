@@ -5,5 +5,4 @@ package com.meccano.kafka;
  *
  * Single interface used to all Request/Response message
  */
-public interface MessageBody {
-}
+public interface MessageBody {}

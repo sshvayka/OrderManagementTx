@@ -2,7 +2,6 @@ package com.meccano.utils;
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.document.Document;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
@@ -18,41 +17,44 @@ public class CBDataGenerator {
     protected CouchbaseCluster cluster;
     protected Bucket bucket;
     protected Random rd;
-    protected int variety =100;
+    protected int variety = 100;
+
     public CBDataGenerator(CBconfig db) {
         this.db = db;
         connect();
         rd = new Random(System.currentTimeMillis());
     }
+
     public void close(){
         cluster.disconnect();
     }
+
     public void createItems(int num, int variety){
         JsonObject item;
         String item_id;
         String store_id;
-        this.variety=variety;
-        for (int i=0; i<num; i++){
-            item_id=getRandomItem(variety);
-            store_id=getRandomStore();
+        this.variety = variety;
+        for (int i = 0; i < num; i++){
+            item_id = getRandomItem(variety);
+            store_id = getRandomStore();
             item = JsonObject.create()
                     .put("_type", "stock")
                     .put("item_id", item_id)
                     .put("store_id", store_id)
-                    .put("quantity", rd.nextInt(100)+1)
-                    .put("price", rd.nextInt(49)+1)
+                    .put("quantity", rd.nextInt(100) + 1)
+                    .put("price", rd.nextInt(49) + 1)
                     .put("currency", "E")
                     .put("category", getRandomCategories());
-            JsonDocument doc = JsonDocument.create(store_id+"-"+item_id, item);
+            JsonDocument doc = JsonDocument.create(store_id + "-" + item_id, item);
             JsonDocument inserted = bucket.upsert(doc);
         }
-
     }
+
     protected JsonArray getRandomCategories(){
-        int number= rd.nextInt(3)+1;
+        int number= rd.nextInt(3) + 1;
         Set<String> set = new TreeSet<String>();
 
-        for (int i=0; i<number; i++) {
+        for (int i = 0; i < number; i++) {
             int c = rd.nextInt(6);
             switch (c) {
                 case 0:
@@ -87,7 +89,7 @@ public class CBDataGenerator {
 
     protected String getRandomItem(int variety)
     {
-        return Integer.toString(rd.nextInt(variety)+1);
+        return Integer.toString(rd.nextInt(variety) + 1);
     }
 
     public void createOrders(int num) {
@@ -193,6 +195,3 @@ public class CBDataGenerator {
         return null;
     }
 }
-
-
-

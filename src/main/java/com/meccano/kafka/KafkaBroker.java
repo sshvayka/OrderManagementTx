@@ -1,7 +1,7 @@
 package com.meccano.kafka;
 
-import com.meccano.microservices.MicroService;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -11,13 +11,11 @@ import java.util.List;
  * Created by ruben.casado.tejedor on 30/08/2016.
  *
  * Simulates the behaviour of a Kakfa cluster with multiple topics.
- *
  */
 public class KafkaBroker {
 
     protected ArrayList<KafkaTopic> topics;
-    static Logger log = Logger.getLogger(KafkaBroker.class.getName());
-
+    private static Logger log = LogManager.getLogger(KafkaBroker.class.getName());
 
     public KafkaBroker(){
         topics = new ArrayList<KafkaTopic>();
@@ -52,27 +50,25 @@ public class KafkaBroker {
         return names;
     }
 
-
     protected KafkaTopic getTopic(String topic_name){
         Iterator<KafkaTopic> itr = topics.iterator();
-        KafkaTopic topic;
+        KafkaTopic topic = null;
         while (itr.hasNext()) {
             topic = itr.next();
             if (topic.getName().equals(topic_name))
                 return topic;
         }
-        return null;
+        return topic;
     }
+
     public KafkaMessage getMessage(String topic_name){
         KafkaTopic topic = this.getTopic(topic_name);
         if (topic != null){
-            if (topic.size()>0)
+            if (topic.size() > 0)
                 return topic.get();
             else
                 return null;
-        }
-
-        else {
+        } else {
             log.error("[ERROR] KakfaBroker - "+ topic_name+" KakfaTopic is null");
             return null;
         }
@@ -80,7 +76,7 @@ public class KafkaBroker {
 
     public void putMessage(String topic_name, KafkaMessage msg){
         KafkaTopic topic = this.getTopic(topic_name);
-        if (topic!=null)
+        if (topic != null)
             topic.put(msg);
     }
 
@@ -94,25 +90,24 @@ public class KafkaBroker {
                 break;
             }
         }
-
     }
 
     public int topicSize(String topic_name){
         KafkaTopic topic = this.getTopic(topic_name);
+        int size = -1;
         if (topic != null)
-            return topic.size();
-        return -1;
+            size = topic.size();
+        return size;
     }
 
     public int totalSize(){
-        int total=0;
+        int total = 0;
         Iterator<KafkaTopic> itr = topics.iterator();
         KafkaTopic topic;
         while (itr.hasNext()) {
             topic = itr.next();
-            total+=topic.size();
+            total += topic.size();
         }
         return total;
     }
-
 }

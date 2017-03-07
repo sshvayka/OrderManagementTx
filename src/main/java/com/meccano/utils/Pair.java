@@ -1,7 +1,5 @@
 package com.meccano.utils;
 
-import java.util.Objects;
-
 /**
  * Created by ruben.casado.tejedor on 30/08/2016.
  */
@@ -11,8 +9,8 @@ public class Pair<K,V> {
     public V value;
 
     public Pair (K key, V value){
-        this.key=key;
-        this.value=value;
+        this.key = key;
+        this.value = value;
     }
 
     @Override
@@ -22,10 +20,9 @@ public class Pair<K,V> {
         if (obj == this)
             return true;
         Pair p = (Pair) obj;
-        return this.key.equals(((Pair) obj).key) &&
-                this.value.equals(((Pair) obj).value);
-
+        return this.key.equals(((Pair) obj).key) && this.value.equals(((Pair) obj).value);
     }
+
     @Override
     public int hashCode() {
         int result = 17;

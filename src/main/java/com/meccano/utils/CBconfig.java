@@ -16,19 +16,16 @@ public class CBconfig {
     public String password;
 
     public CBconfig(){
-        this.clusterURL="localhost";
-        this.bucket="default";
-        this.password=null;
+        this.clusterURL = "localhost";
+        this.bucket = "default";
+        this.password = null;
         this.cluster = CouchbaseCluster.create(this.clusterURL);
-
     }
 
     public CBconfig(String clusterURL, String bucket, String pass){
-        this.clusterURL=clusterURL;
-        this.bucket=bucket;
-        this.password=pass;
+        this.clusterURL = clusterURL;
+        this.bucket = bucket;
+        this.password = pass;
         this.cluster = CouchbaseCluster.create(this.clusterURL);
-
     }
-
 }

@@ -1,10 +1,9 @@
 package com.meccano.microservices;
 
 import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.view.ViewResult;
 import com.couchbase.client.java.view.ViewRow;
-import com.meccano.kafka.MessageBody;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
@@ -17,7 +16,7 @@ public class OrderFulfillmentResponse implements com.meccano.kafka.MessageBody{
         public UUID order_id;
         public StockVisibilityResponse stockVisibilityResponse;
 
-        static Logger log = Logger.getLogger(OrderFulfillmentResponse.class.getName());
+        static Logger log = LogManager.getLogger(OrderFulfillmentResponse.class.getName());
 
 
     public OrderFulfillmentResponse(UUID order_id, Hashtable<String,List<ViewRow>> result, StockVisibilityResponse sr){
@@ -35,8 +34,5 @@ public class OrderFulfillmentResponse implements com.meccano.kafka.MessageBody{
                 }
                 results.put(key, temp);
             }
-
-
         }
-
 }

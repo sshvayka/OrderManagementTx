@@ -4,8 +4,8 @@ import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
-import com.meccano.Main;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 
@@ -14,17 +14,26 @@ import java.util.ArrayList;
  */
 public class MultiDocumentTransactionManager {
 
-    static Logger log = Logger.getLogger(MultiDocumentTransactionManager.class.getName());
+    protected CBconfig db;
+    protected CouchbaseCluster cluster;
+    protected Bucket bucket;
+    protected ArrayList<String> document_ids;
+    protected ArrayList<JsonDocument> original_documents;
+    protected ArrayList<String> updated_ids;
+    protected long timeout;
+    protected String owner;
+    protected String state;
 
+    static Logger log = LogManager.getLogger(MultiDocumentTransactionManager.class.getName());
 
     public MultiDocumentTransactionManager(CBconfig db){
         document_ids = new ArrayList<String>();
-        original_documents= new ArrayList<JsonDocument>();
-        updated_ids= new ArrayList<String>();
+        original_documents = new ArrayList<JsonDocument>();
+        updated_ids = new ArrayList<String>();
 
-        timeout=100;
+        timeout = 100;
         state = new String("INITIAL");
-        this.db=db;
+        this.db = db;
 
         if (this.db == null) {
             log.error("[ERROR] MultiDocumentTransactionManager: CBconfig is null");
@@ -42,11 +51,11 @@ public class MultiDocumentTransactionManager {
 
     public void partialCommit(String document_id){
         this.updated_ids.add(document_id);
-        this.state="PARTIAL_COMMIT";
+        this.state = "PARTIAL_COMMIT";
     }
 
     public void updateState(String state){
-        this.state=state;
+        this.state = state;
     }
 
     public String getState(){
@@ -55,8 +64,7 @@ public class MultiDocumentTransactionManager {
 
     public void commit(){
         this.removeLockDocuments();
-        this.state="COMMITTED";
-
+        this.state = "COMMITTED";
     }
 
     public void close(){
@@ -64,67 +72,50 @@ public class MultiDocumentTransactionManager {
     }
 
     protected JsonDocument getOriginal(String id){
-        for (int i =0; i< this.original_documents.size();i++){
+        for (int i = 0; i < this.original_documents.size(); i++){
             JsonDocument d = this.original_documents.get(i);
-            if (d.id()==id)
+            if (d.id() == id)
                 return d;
         }
         return null;
-
     }
 
     public void rollback(){
-        for (int i=0; i< updated_ids.size();i++){
+        for (int i = 0; i < updated_ids.size(); i++){
            JsonDocument original = this.getOriginal(updated_ids.get(i));
-            if (original!=null)
+            if (original != null)
                 bucket.upsert(original);
             else
                 log.error("[ERROR] MultiDocumentTransactionManager: Rollback error");
-
         }
-        this.state="ROLLBACKED";
+        this.state = "ROLLBACKED";
     }
 
     protected void removeLockDocuments(){
-        for (int i =0; i< original_documents.size();i++){
+        for (int i = 0; i < original_documents.size(); i++){
             String original_id = original_documents.get(i).id();
-            this.bucket.remove(original_id+"_lock");
+            this.bucket.remove(original_id + "_lock");
         }
     }
 
     public void start(){
-        this.state="STARTED";
+        this.state = "STARTED";
     }
 
     public boolean createLockDocument(String document_id){
         JsonDocument found = bucket.get(document_id);
         original_documents.add(found);
-        JsonObject object =found.content();
+        JsonObject object = found.content();
 
-        JsonDocument lock_document = JsonDocument.create(document_id+"_lock");
+        JsonDocument lock_document = JsonDocument.create(document_id + "_lock");
         try {
             bucket.upsert(lock_document);
             log.debug("[TX] Saved document "+ lock_document.id());
         }
         catch (Exception e){
-            log.error("[ERROR] MultiDocumentTransactionManager: "+document_id+" already blocked");
+            log.error("[ERROR] MultiDocumentTransactionManager: " + document_id + " already blocked");
             return false;
         }
-
-
         return true;
-
     }
-
-
-
-    protected CBconfig db;
-    protected CouchbaseCluster cluster;
-    protected Bucket bucket;
-    protected ArrayList<String> document_ids;
-    protected ArrayList<JsonDocument> original_documents;
-    protected ArrayList<String> updated_ids;
-    protected long timeout;
-    protected String owner;
-    protected String state;
 }
