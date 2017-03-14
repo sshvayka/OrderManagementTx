@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ruben.casado.tejedor on 31/08/2016.
@@ -19,16 +20,16 @@ import java.util.List;
 public class OrderFulfillment extends MicroService {
 
     public OrderFulfillment (KafkaBroker kafka, CBconfig db){
-        super("OrderFulfillment", kafka, "OrderFulfillment",db);
+        super("OrderFulfillment", kafka, "OrderFulfillment", db);
     }
 
     protected void processMessage(KafkaMessage message) {
 
         OrderFulfillmentRequest request= (OrderFulfillmentRequest)message.getMessageBody();
 
-        JsonArray keys =JsonArray.create();
+        JsonArray keys = JsonArray.create();
         // iterate all items
-        Iterator<String> itr= request.item_id.iterator();
+        Iterator<String> itr = request.item_id.iterator();
         Hashtable<String,List<ViewRow>> results = new Hashtable<String, List<ViewRow>>();
         while (itr.hasNext()){
             //for each item, get the allocation of each associate store
@@ -40,11 +41,16 @@ public class OrderFulfillment extends MicroService {
                 j.add(s);
                 keys.add(j);
             }
-            ViewQuery query = ViewQuery.from("OrderFulfillment","allocations").group().reduce().keys(keys);
-            ViewResult result = this.bucket.query(query);
-            List<ViewRow> row_result = result.allRows();
-            log.debug(request.order_id + " Resultados MapReduce:" + row_result.size());
-            results.put(item_id, row_result);
+            List<ViewRow> rowResult = new ArrayList<>();
+            try {
+                ViewQuery query = ViewQuery.from("OrderFulfillment", "allocations").group().reduce().keys(keys);
+                ViewResult result = this.bucket.query(query);
+                rowResult = result.allRows();
+            } catch (RuntimeException e){
+                log.error("Error del Observable al hacer la operacion con la Vista (" + e.getMessage() + ")");
+            }
+//            log.debug(request.order_id + " Resultados MapReduce:" + rowResult.size());
+            results.put(item_id, rowResult);
         }
 
         OrderFulfillmentResponse body = new OrderFulfillmentResponse(request.order_id, results, request.stockVisibilityResponse);
@@ -56,6 +62,7 @@ public class OrderFulfillment extends MicroService {
 
     protected void exit() {
         log.info("OrderFulfillment exit");
+//        db.cluster.disconnect();
     }
 
     protected ArrayList<String> getStores(){

@@ -8,6 +8,8 @@ import com.meccano.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -41,7 +43,12 @@ public class StockVisibility extends MicroService {
                 // The document_id is store_id-item_id
                 String id = store_id + "-" + item_id;
                 log.debug(id);
-                JsonDocument found = bucket.get(id);
+                JsonDocument found = null;
+                try {
+                    found = bucket.get(id);
+                } catch (RuntimeException e){
+                    log.error("Timeout exceeded at GET operation (" + e.getMessage() + ")");
+                }
                 if (found != null){
                     Integer quantity = found.content().getInt("quantity") - 1; // 1 item is 0 to use atomic opr
                     stock.add(item_id, new Pair<String, Integer>(store_id, quantity));
@@ -59,7 +66,8 @@ public class StockVisibility extends MicroService {
 
     @Override
     protected void exit() {
-        log.info("StockVisiblity exit");
+        log.info("StockVisibility exit");
+//        db.cluster.disconnect();
     }
 
     // Define the set of stores associated to this MS instance

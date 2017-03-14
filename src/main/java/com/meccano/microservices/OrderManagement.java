@@ -114,7 +114,7 @@ public class OrderManagement extends MicroService {
             if (this.file != null )
                 this.file.close();
             log.info("OrderManagement exit");
-
+            db.cluster.disconnect();
         } catch (Exception e) {
             log.error(" Exit: "+ e.toString());
         }

@@ -1,7 +1,10 @@
 package com.meccano.microservices;
 
 import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.CouchbaseCluster;
+import com.couchbase.client.java.env.CouchbaseEnvironment;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
 import com.meccano.utils.CBconfig;
@@ -25,7 +28,8 @@ public abstract class MicroService implements Runnable {
     protected CBconfig db;
     protected boolean finish;
 
-    protected CouchbaseCluster cluster;
+//    protected CouchbaseCluster cluster;
+    protected Cluster cluster;
     protected Bucket bucket;
     protected static Logger log = LogManager.getLogger(MicroService.class);
 
@@ -41,7 +45,7 @@ public abstract class MicroService implements Runnable {
             this.db = db;
             this.finish = false;
         } else {
-            log.error("[ERROR] MS "+type+" generation: CBconfig is null");
+            log.error("[ERROR] MS " + type + " generation: CBconfig is null");
             this.finish = true;
             return;
         }
@@ -49,16 +53,16 @@ public abstract class MicroService implements Runnable {
             this.kafka = kafka;
             this.finish = false;
         } else {
-            log.error("[ERROR] MS "+type+" generation: Kafka is null");
-            this.finish=true;
+            log.error("[ERROR] MS " + type + " generation: Kafka is null");
+            this.finish = true;
             return;
         }
         // Use the cluster connection
         cluster = db.cluster;
-
+//        cluster = CouchbaseCluster.create(env, "localhost"); // Puesto a localhost por defecto TODO hacer dinamico
         // Connect to the bucket and open it
         if (db.password != null)
-            bucket = cluster.openBucket(db.bucket,db.password);
+            bucket = cluster.openBucket(db.bucket, db.password);
         else
             bucket = cluster.openBucket(db.bucket);
     }
@@ -85,7 +89,7 @@ public abstract class MicroService implements Runnable {
             message = consumMessage();
             if(message != null)
                 if (message.getType() == "Kill")
-                    this.finish=true;
+                    this.finish = true;
                 else
                     this.processMessage(message);
         }
@@ -94,6 +98,7 @@ public abstract class MicroService implements Runnable {
     protected KafkaMessage consumMessage(){
         return this.kafka.getMessage(this.getTopicSubscription());
     }
+
     protected abstract void processMessage(KafkaMessage message);
 
     protected abstract void exit();

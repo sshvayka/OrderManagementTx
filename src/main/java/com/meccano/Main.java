@@ -70,7 +70,7 @@ public class Main {
         // StockVisibility pull
         ArrayList<Thread> stockVisibility = new ArrayList<Thread>();
         for (int i = 0; i < Main.N_STOCK_VISIBILITY; i++){
-            Thread t = new Thread(new StockVisibility(kafka,db), "StockVisibility"+i);
+            Thread t = new Thread(new StockVisibility(kafka, db), "StockVisibility"+i);
             t.start();
             stockVisibility.add(t);
         }
@@ -86,8 +86,8 @@ public class Main {
         // Sourcing pull
         ArrayList<Thread> sourcing = new ArrayList<Thread>();
         for (int i = 0; i < Main.N_SOURCING; i++){
-            Thread t = new  Thread(new SourcingPL(kafka, db));
-            //Thread t = new Thread(new SourcingOL(kafka, db));
+//            Thread t = new Thread(new SourcingPL(kafka, db));
+            Thread t = new Thread(new SourcingOL(kafka, db));
             t.start();
             //t.join();
             sourcing.add(t);
@@ -99,7 +99,7 @@ public class Main {
         control.start();
         control.join();
 
-        db.cluster.disconnect();
+        db.exit(); // Cierre de conexiones
         log.info("FINISH");
         long total = System.currentTimeMillis() - init;
         log.info("Time: " + total );

@@ -96,7 +96,12 @@ public class SourcingOL extends MicroService {
 
                 // here we could use atomic operation to decrement phisic stock but we use the same
                 // approach used in SourcingPL --> create the order document
-                JsonDocument found = bucket.get(id);
+                JsonDocument found = null;
+                try {
+                    found = bucket.get(id);
+                } catch (RuntimeException e){
+                    log.error("Timeout exceeded at GET operation (" + e.getMessage() + ")");
+                }
                 //create suborder
                 JsonObject suborder = JsonObject.create()
                         .put("suborder_id", UUID.randomUUID().toString())
@@ -146,5 +151,6 @@ public class SourcingOL extends MicroService {
 
     protected void exit() {
         log.info("SourcingOL exit");
+//        db.cluster.disconnect();
     }
 }
