@@ -6,20 +6,19 @@ import com.couchbase.client.java.view.ViewResult;
 import com.couchbase.client.java.view.ViewRow;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
-import com.meccano.utils.CBconfig;
+import com.meccano.utils.CBConfig;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ruben.casado.tejedor on 31/08/2016.
  */
 public class OrderFulfillment extends MicroService {
 
-    public OrderFulfillment (KafkaBroker kafka, CBconfig db){
+    public OrderFulfillment (KafkaBroker kafka, CBConfig db){
         super("OrderFulfillment", kafka, "OrderFulfillment", db);
     }
 

@@ -10,7 +10,7 @@ import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
  * Class to encapsulate the connexion parameters for Couchbase.
  * In next releases, they should be parameters of the constructor
  */
-public class CBconfig {
+public class CBConfig {
 
     private CouchbaseCluster cluster;
     private String clusterURL;
@@ -18,14 +18,14 @@ public class CBconfig {
     private String password;
     private CouchbaseEnvironment env = DefaultCouchbaseEnvironment.create();
 
-    public CBconfig(){
+    public CBConfig(){
         this.clusterURL = "localhost";
         this.bucket = "default";
         this.password = null;
         this.cluster = CouchbaseCluster.create(env, this.clusterURL);
     }
 
-    public CBconfig(String clusterURL, String bucket, String pass){
+    public CBConfig(String clusterURL, String bucket, String pass){
         this.clusterURL = clusterURL;
         this.bucket = bucket;
         this.password = pass;

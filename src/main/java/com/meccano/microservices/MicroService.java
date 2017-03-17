@@ -4,7 +4,7 @@ import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
-import com.meccano.utils.CBconfig;
+import com.meccano.utils.CBConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,7 +22,7 @@ public abstract class MicroService implements Runnable {
     protected UUID instance;
     protected KafkaBroker kafka;
     protected String topic_subscription;
-    protected CBconfig db;
+    protected CBConfig db;
     protected boolean finish;
 
 //    protected CouchbaseCluster cluster;
@@ -31,7 +31,7 @@ public abstract class MicroService implements Runnable {
     protected static Logger log = LogManager.getLogger(MicroService.class);
 
 
-    public MicroService(String type, KafkaBroker kafka, String topic, CBconfig db){
+    public MicroService(String type, KafkaBroker kafka, String topic, CBConfig db){
         this.type = type;
         this.instance = UUID.randomUUID();
         this.topic_subscription = topic;
@@ -42,7 +42,7 @@ public abstract class MicroService implements Runnable {
             this.db = db;
             this.finish = false;
         } else {
-            log.error("[ERROR] MS " + type + " generation: CBconfig is null");
+            log.error("[ERROR] MS " + type + " generation: CBConfig is null");
             this.finish = true;
             return;
         }

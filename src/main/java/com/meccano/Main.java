@@ -2,8 +2,7 @@ package com.meccano;
 
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.microservices.*;
-import com.meccano.utils.CBDataGenerator;
-import com.meccano.utils.CBconfig;
+import com.meccano.utils.CBConfig;
 import com.meccano.utils.ControlThread;
 import com.meccano.utils.RequestGenerator;
 import org.apache.logging.log4j.LogManager;
@@ -35,7 +34,7 @@ public class Main {
         log.info("START");
 
         // Details for couchbase connection. Localhost default
-        CBconfig db = new CBconfig();
+        CBConfig db = new CBConfig();
         db.setBucket(Main.BUCKET);
 
 //        // Code for generating fake data in Couchbase

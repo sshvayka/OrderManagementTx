@@ -5,7 +5,7 @@ import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
-import com.meccano.utils.CBconfig;
+import com.meccano.utils.CBConfig;
 import com.meccano.utils.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,12 +21,12 @@ public class SourcingPL extends MicroService {
     private static Logger log = LogManager.getLogger(SourcingPL.class);
 
 
-    public SourcingPL(KafkaBroker kafka, CBconfig db){
+    public SourcingPL(KafkaBroker kafka, CBConfig db){
         super("SourcingPL", kafka,"Sourcing", db);
         this.locking_time = 30;
     }
 
-    public SourcingPL(KafkaBroker kafka, CBconfig db, int time){
+    public SourcingPL(KafkaBroker kafka, CBConfig db, int time){
         super("SourcingPL", kafka,"SourcingRequest", db);
         this.locking_time = time;
     }

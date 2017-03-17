@@ -14,7 +14,7 @@ import java.util.ArrayList;
  */
 public class MultiDocumentTransactionManager {
 
-    protected CBconfig db;
+    protected CBConfig db;
     protected CouchbaseCluster cluster;
     protected Bucket bucket;
     protected ArrayList<String> document_ids;
@@ -26,7 +26,7 @@ public class MultiDocumentTransactionManager {
 
     static Logger log = LogManager.getLogger(MultiDocumentTransactionManager.class.getName());
 
-    public MultiDocumentTransactionManager(CBconfig db){
+    public MultiDocumentTransactionManager(CBConfig db){
         document_ids = new ArrayList<String>();
         original_documents = new ArrayList<JsonDocument>();
         updated_ids = new ArrayList<String>();
@@ -36,7 +36,7 @@ public class MultiDocumentTransactionManager {
         this.db = db;
 
         if (this.db == null) {
-            log.error("[ERROR] MultiDocumentTransactionManager: CBconfig is null");
+            log.error("[ERROR] MultiDocumentTransactionManager: CBConfig is null");
             return;
         }
 

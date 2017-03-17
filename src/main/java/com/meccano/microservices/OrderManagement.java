@@ -2,7 +2,7 @@ package com.meccano.microservices;
 
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
-import com.meccano.utils.CBconfig;
+import com.meccano.utils.CBConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,7 +18,7 @@ public class OrderManagement extends MicroService {
     protected String path;
     static Logger log = LogManager.getLogger(OrderManagement.class.getName());
 
-    public OrderManagement(KafkaBroker kafka, CBconfig db, String path) throws IOException {
+    public OrderManagement(KafkaBroker kafka, CBConfig db, String path) throws IOException {
         super ("OrderManagement", kafka, "OrderManagement", db);
         this.path = path;
     }

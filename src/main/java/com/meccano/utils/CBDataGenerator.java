@@ -13,13 +13,13 @@ import java.util.*;
  */
 public class CBDataGenerator {
 
-    protected CBconfig db;
+    protected CBConfig db;
     protected CouchbaseCluster cluster;
     protected Bucket bucket;
     protected Random rd;
     protected int variety = 100;
 
-    public CBDataGenerator(CBconfig db) {
+    public CBDataGenerator(CBConfig db) {
         this.db = db;
         connect();
         rd = new Random(System.currentTimeMillis());
@@ -127,7 +127,7 @@ public class CBDataGenerator {
         }
     }
 
-    public void changeConfig(CBconfig db) {
+    public void changeConfig(CBConfig db) {
         cluster.disconnect();
         this.db = db;
         connect();
@@ -135,7 +135,7 @@ public class CBDataGenerator {
 
     protected void connect() {
         if (this.db == null) {
-            System.err.println("[ERROR] CBDataGenerator: CBconfig is null");
+            System.err.println("[ERROR] CBDataGenerator: CBConfig is null");
             return;
         }
 

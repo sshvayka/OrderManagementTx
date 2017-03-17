@@ -3,12 +3,11 @@ package com.meccano.microservices;
 import com.couchbase.client.java.document.JsonDocument;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
-import com.meccano.utils.CBconfig;
+import com.meccano.utils.CBConfig;
 import com.meccano.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,7 +20,7 @@ public class StockVisibility extends MicroService {
 
     private static Logger log = LogManager.getLogger(StockVisibility.class);
 
-    public StockVisibility(KafkaBroker kafka, CBconfig db){
+    public StockVisibility(KafkaBroker kafka, CBConfig db){
         super("StockVisibility", kafka, "StockVisibility", db);
         log.info("StockVisibility MS thread created");
     }
