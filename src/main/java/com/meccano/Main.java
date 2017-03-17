@@ -23,11 +23,11 @@ public class Main {
     private static Logger log = LogManager.getLogger(Main.class);
 
     // Hard-coded parameters
-    static int N_ORDER_MANAGEMENT = 15;
-    static int N_STOCK_VISIBILITY = 8;
-    static int N_ORDER_FUFILLMENT = 13;
-    static int N_SOURCING = 31;
-    static String BUCKET = "mecanno";
+    private static int N_ORDER_MANAGEMENT = 15;
+    private static int N_STOCK_VISIBILITY = 8;
+    private static int N_ORDER_FUFILLMENT = 13;
+    private static int N_SOURCING = 31;
+    private static String BUCKET = "mecanno";
 
     public static void main(String[] args) throws Exception{
         long init = System.currentTimeMillis();
@@ -85,10 +85,10 @@ public class Main {
         // Sourcing pull
         ArrayList<Thread> sourcing = new ArrayList<Thread>();
         for (int i = 0; i < Main.N_SOURCING; i++){
-//            Thread t = new Thread(new SourcingPL(kafka, db));
-            Thread t = new Thread(new SourcingOL(kafka, db));
+            Thread t = new Thread(new SourcingPL(kafka, db));
+//            Thread t = new Thread(new SourcingOL(kafka, db));
             t.start();
-            //t.join();
+//            t.join();
             sourcing.add(t);
         }
 

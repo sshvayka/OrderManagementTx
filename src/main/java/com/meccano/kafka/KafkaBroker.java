@@ -8,14 +8,14 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Created by ruben.casado.tejedor on 30/08/2016.
  *
  * Simulates the behaviour of a Kakfa cluster with multiple topics.
+ *
  */
 public class KafkaBroker {
 
-    protected ArrayList<KafkaTopic> topics;
-    private static Logger log = LogManager.getLogger(KafkaBroker.class.getName());
+    private ArrayList<KafkaTopic> topics;
+    private static Logger log = LogManager.getLogger(KafkaBroker.class);
 
     public KafkaBroker(){
         topics = new ArrayList<KafkaTopic>();
@@ -50,7 +50,7 @@ public class KafkaBroker {
         return names;
     }
 
-    protected KafkaTopic getTopic(String topic_name){
+    public KafkaTopic getTopic(String topic_name){
         Iterator<KafkaTopic> itr = topics.iterator();
         KafkaTopic topic = null;
         while (itr.hasNext()) {

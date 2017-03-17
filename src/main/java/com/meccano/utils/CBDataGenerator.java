@@ -13,11 +13,11 @@ import java.util.*;
  */
 public class CBDataGenerator {
 
-    protected CBConfig db;
-    protected CouchbaseCluster cluster;
-    protected Bucket bucket;
-    protected Random rd;
-    protected int variety = 100;
+    private CBConfig db;
+    private CouchbaseCluster cluster;
+    private Bucket bucket;
+    private Random rd;
+    private int variety = 100;
 
     public CBDataGenerator(CBConfig db) {
         this.db = db;
@@ -50,7 +50,7 @@ public class CBDataGenerator {
         }
     }
 
-    protected JsonArray getRandomCategories(){
+    private JsonArray getRandomCategories(){
         int number= rd.nextInt(3) + 1;
         Set<String> set = new TreeSet<String>();
 
@@ -87,7 +87,7 @@ public class CBDataGenerator {
         return JsonArray.from(categories);
     }
 
-    protected String getRandomItem(int variety)
+    private String getRandomItem(int variety)
     {
         return Integer.toString(rd.nextInt(variety) + 1);
     }
@@ -133,7 +133,7 @@ public class CBDataGenerator {
         connect();
     }
 
-    protected void connect() {
+    private void connect() {
         if (this.db == null) {
             System.err.println("[ERROR] CBDataGenerator: CBConfig is null");
             return;

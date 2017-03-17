@@ -1,12 +1,9 @@
 package com.meccano.utils;
 
-/**
- * Created by ruben.casado.tejedor on 30/08/2016.
- */
 public class Pair<K,V> {
 
-    public K key;
-    public V value;
+    private K key;
+    private V value;
 
     public Pair (K key, V value){
         this.key = key;
@@ -29,5 +26,13 @@ public class Pair<K,V> {
         result = 31 * result + this.key.hashCode();
         result = 31 * result + this.value.hashCode();
         return result;
+    }
+
+    public K getKey() {
+        return key;
+    }
+
+    public V getValue() {
+        return value;
     }
 }

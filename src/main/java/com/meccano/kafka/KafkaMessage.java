@@ -5,11 +5,11 @@ package com.meccano.kafka;
  * Base class for implementing the messages exchanged by the MS using Kafka broker
  */
 public class KafkaMessage {
-    protected String  type;
-    protected MessageBody body;
-    protected String source;
-    protected String destination;
-    protected String topic;
+    private String  type;
+    private MessageBody body;
+    private String source;
+    private String destination;
+    private String topic;
 
     public KafkaMessage(String topic, String type, MessageBody body, String source, String destination) {
         this.topic = topic;
@@ -28,4 +28,16 @@ public class KafkaMessage {
     }
 
     public String getSource(){ return this.source;}
+
+    public MessageBody getBody() {
+        return body;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public String getTopic() {
+        return topic;
+    }
 }

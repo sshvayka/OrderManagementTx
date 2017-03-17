@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class KafkaTopic {
 
-    protected ConcurrentLinkedQueue<KafkaMessage> topic;
-    protected String name;
+    private ConcurrentLinkedQueue<KafkaMessage> topic;
+    private String name;
 
     protected KafkaTopic (String name){
         this.name = name;

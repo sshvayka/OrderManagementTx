@@ -16,17 +16,13 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.UUID;
 
-/**
- * Created by ruben.casado.tejedor on 06/09/2016.
- */
 public class SourcingOL extends MicroService {
 
-    protected int locking_time;
-    static Logger log = LogManager.getLogger(SourcingOL.class.getName());
-
+    private int locking_time;
+    private static Logger log = LogManager.getLogger(SourcingOL.class.getName());
 
     public SourcingOL(KafkaBroker kafka, CBConfig db){
-        super("SourcingOL",kafka,"Sourcing", db);
+        super("SourcingOL", kafka,"Sourcing", db);
         this.locking_time = 30;
     }
 
@@ -37,14 +33,14 @@ public class SourcingOL extends MicroService {
 
     protected String getRandomStore(StockVisibilityResponse stock, OrderFulfillmentResponse allocations, String item_id, int quantity){
         String store_id = null;
-        ArrayList<Pair<String, Integer>> stocks = stock.stocks.get(item_id);
+        ArrayList<Pair<String, Integer>> stocks = stock.getStocks().get(item_id);
         boolean allocated = false;
         for (int i = 0; i< stocks.size() && !allocated; i++){
-            String s_id = stocks.get(i).key;
-            int store_stock = stocks.get(i).value.intValue();
+            String s_id = stocks.get(i).getKey();
+            int store_stock = stocks.get(i).getValue();
             log.debug("Item to query: " + item_id);
             log.debug("Store to query: " + s_id);
-            Hashtable<String, Integer> t = allocations.results.get(item_id);
+            Hashtable<String, Integer> t = allocations.getResults().get(item_id);
 
             int store_allocations;
             if (t.containsKey(s_id))
@@ -56,13 +52,10 @@ public class SourcingOL extends MicroService {
                 log.debug("[ALLOCATED] Item: "+item_id + " Store: " + s_id + " Store stock: " + store_stock + " Store allocations: " + store_allocations + " Requested: " + quantity);
                 store_id = s_id;
                 allocated = true;
-            }
-
-            else{
+            } else{
                 log.debug("[REJECTED] Item: " + item_id+" Store: " + s_id + " Store stock: " + store_stock + " Store allocations: " + store_allocations + " Requested: " + quantity);
                 store_id = null;
             }
-
         }
         if (store_id == null)
             return null;
@@ -71,9 +64,9 @@ public class SourcingOL extends MicroService {
 
     protected void processMessage(KafkaMessage message) {
         SourcingRequest request = (SourcingRequest) message.getMessageBody();
-        MultiDocumentTransactionManager tx = new MultiDocumentTransactionManager(this.db);
+        MultiDocumentTransactionManager tx = new MultiDocumentTransactionManager(super.getDb());
         ArrayList<JsonDocument> blocks =  new ArrayList<JsonDocument>();
-        Iterator<String> itr = request.stocks.stock_id.iterator();
+        Iterator<String> itr = request.getStocks().getStock_id().iterator();
 
         //Transaction start
         tx.start();
@@ -81,7 +74,7 @@ public class SourcingOL extends MicroService {
         //create order document
         JsonObject order = JsonObject.create()
                 .put("_type", "Order")
-                .put("order_id", request.order_id.toString())
+                .put("order_id", request.getOrder_id().toString())
                 .put("state", "ALLOCATED");
         JsonArray suborders = JsonArray.create();
         int j = 0;
@@ -89,7 +82,7 @@ public class SourcingOL extends MicroService {
         while (itr.hasNext() && success) {
             String stock_id = itr.next();
             //get a random store with enough stock
-            String id = this.getRandomStore(request.stocks, request.allocations, stock_id, (Integer) request.quantity.get(stock_id));
+            String id = this.getRandomStore(request.getStocks(), request.getAllocations(), stock_id, (Integer) request.getQuantity().get(stock_id));
             //create locking_document
             if (id != null && tx.createLockDocument(id)) {
                 log.debug("Lock document created: " + id + "_lock");
@@ -98,7 +91,7 @@ public class SourcingOL extends MicroService {
                 // approach used in SourcingPL --> create the order document
                 JsonDocument found = null;
                 try {
-                    found = bucket.get(id);
+                    found = super.getBucket().get(id);
                 } catch (RuntimeException e){
                     log.error("Timeout exceeded at GET operation (" + e.getMessage() + ")");
                 }
@@ -113,7 +106,7 @@ public class SourcingOL extends MicroService {
                         .put("item_id", found.content().getString("item_id"))
                         .put("price", found.content().getInt("price"))
                         .put("currency", found.content().getString("currency"))
-                        .put("quantity", request.quantity.get(found.content().getString("item_id")));
+                        .put("quantity", request.getQuantity().get(found.content().getString("item_id")));
                 items.add(item);
                 suborder.put("items", items);
                 suborders.add(suborder);
@@ -132,21 +125,21 @@ public class SourcingOL extends MicroService {
         //all documents has been successfully blocked so the transaction will commit
         if (success){
             order.put("suborders", suborders);
-            JsonDocument doc = JsonDocument.create(request.order_id.toString(), order);
-            JsonDocument inserted = bucket.upsert(doc);
+            JsonDocument doc = JsonDocument.create(request.getOrder_id().toString(), order);
+            JsonDocument inserted = super.getBucket().upsert(doc);
             tx.commit();
-            log.debug(request.order_id+ " - Order saved in CouchBase");
+            log.debug(request.getOrder_id()+ " - Order saved in CouchBase");
             //tx.close();
             log.debug("Transaction commited");
-            body = new SourcingResponse(request.order_id, true);
+            body = new SourcingResponse(request.getOrder_id(), true);
         }
         else{
-            body = new SourcingResponse(request.order_id, false);
+            body = new SourcingResponse(request.getOrder_id(), false);
         }
 
         //put in kafka the response message
         KafkaMessage msg = new KafkaMessage("OrderManagement", "SourcingResponse", body, this.getType(), message.getSource());
-        this.kafka.putMessage("OrderManagement", msg);
+        super.getKafka().putMessage("OrderManagement", msg);
     }
 
     protected void exit() {

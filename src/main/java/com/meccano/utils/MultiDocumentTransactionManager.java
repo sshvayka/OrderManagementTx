@@ -14,17 +14,17 @@ import java.util.ArrayList;
  */
 public class MultiDocumentTransactionManager {
 
-    protected CBConfig db;
-    protected CouchbaseCluster cluster;
-    protected Bucket bucket;
-    protected ArrayList<String> document_ids;
-    protected ArrayList<JsonDocument> original_documents;
-    protected ArrayList<String> updated_ids;
-    protected long timeout;
-    protected String owner;
-    protected String state;
+    private CBConfig db;
+    private CouchbaseCluster cluster;
+    private Bucket bucket;
+    private ArrayList<String> document_ids;
+    private ArrayList<JsonDocument> original_documents;
+    private ArrayList<String> updated_ids;
+    private long timeout;
+    private String owner;
+    private String state;
 
-    static Logger log = LogManager.getLogger(MultiDocumentTransactionManager.class.getName());
+    private static Logger log = LogManager.getLogger(MultiDocumentTransactionManager.class.getName());
 
     public MultiDocumentTransactionManager(CBConfig db){
         document_ids = new ArrayList<String>();
@@ -52,14 +52,6 @@ public class MultiDocumentTransactionManager {
     public void partialCommit(String document_id){
         this.updated_ids.add(document_id);
         this.state = "PARTIAL_COMMIT";
-    }
-
-    public void updateState(String state){
-        this.state = state;
-    }
-
-    public String getState(){
-        return this.state;
     }
 
     public void commit(){
@@ -117,5 +109,13 @@ public class MultiDocumentTransactionManager {
             return false;
         }
         return true;
+    }
+
+    public String getState(){
+        return this.state;
+    }
+
+    public void setState(String state){
+        this.state = state;
     }
 }

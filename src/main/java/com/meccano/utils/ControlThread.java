@@ -13,15 +13,15 @@ import org.apache.logging.log4j.Logger;
  */
 public class ControlThread implements Runnable {
 
-    protected KafkaBroker kafka;
+    private KafkaBroker kafka;
 
     // Number of instances of each microservice (thread)
-    protected int n_om;
-    protected int n_sv;
-    protected int n_of;
-    protected int n_so;
+    private int n_om;
+    private int n_sv;
+    private int n_of;
+    private int n_so;
 
-    static Logger log = LogManager.getLogger(Main.class.getName());
+    private static Logger log = LogManager.getLogger(Main.class);
 
     public ControlThread(KafkaBroker kafka, int n_om, int n_sv, int of, int so){
         this.kafka = kafka;

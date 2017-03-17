@@ -11,12 +11,24 @@ import java.util.UUID;
  */
 public class OrderManagementRequest implements MessageBody {
 
-    public ArrayList<Pair<String,Integer>> items; // Array of item_id and quantity
-    public UUID order_id;
-    public long order_start;
+    private ArrayList<Pair<String,Integer>> items; // Array of item_id and quantity
+    private UUID order_id;
+    private long order_start;
 
     public OrderManagementRequest(UUID order_id, ArrayList<Pair<String, Integer>> stock_id) {
         this.items = stock_id;
         this.order_id = order_id;
+    }
+
+    public ArrayList<Pair<String, Integer>> getItems() {
+        return items;
+    }
+
+    public UUID getOrder_id() {
+        return order_id;
+    }
+
+    public long getOrder_start() {
+        return order_start;
     }
 }

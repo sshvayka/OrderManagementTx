@@ -10,10 +10,10 @@ import java.util.*;
  */
 public class SourcingRequest implements MessageBody {
 
-    public StockVisibilityResponse stocks;
-    public OrderFulfillmentResponse allocations;
-    public Hashtable<String, Integer> quantity;
-    public UUID order_id;
+    private StockVisibilityResponse stocks;
+    private OrderFulfillmentResponse allocations;
+    private Hashtable<String, Integer> quantity;
+    private UUID order_id;
 
     public SourcingRequest(UUID order_id, StockVisibilityResponse stocks, OrderFulfillmentResponse allocations, ArrayList<Pair<String, Integer>> quantity){
         this.order_id = order_id;
@@ -23,7 +23,23 @@ public class SourcingRequest implements MessageBody {
         Iterator<Pair<String, Integer>> itr = quantity.iterator();
         while (itr.hasNext()){
             Pair<String, Integer> item = itr.next();
-            this.quantity.put(item.key, item.value);
+            this.quantity.put(item.getKey(), item.getValue());
         }
+    }
+
+    public StockVisibilityResponse getStocks() {
+        return stocks;
+    }
+
+    public OrderFulfillmentResponse getAllocations() {
+        return allocations;
+    }
+
+    public Hashtable<String, Integer> getQuantity() {
+        return quantity;
+    }
+
+    public UUID getOrder_id() {
+        return order_id;
     }
 }

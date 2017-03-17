@@ -1,6 +1,5 @@
 package com.meccano.utils;
 
-import com.meccano.Main;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
 import com.meccano.microservices.OrderManagementRequest;
@@ -11,16 +10,13 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
 
-/**
- * Created by ruben.casado.tejedor on 20/09/2016.
- */
 public class RequestGenerator implements Runnable {
 
-    protected KafkaBroker kafka;
-    protected int n_orders;
-    protected int frequency;
-    protected int variety;
-    static Logger log = LogManager.getLogger(Main.class.getName());
+    private KafkaBroker kafka;
+    private int n_orders;
+    private int frequency;
+    private int variety;
+    private static Logger log = LogManager.getLogger(RequestGenerator.class);
 
     public RequestGenerator (KafkaBroker kafka, int num, int fre, int var){
         this.kafka = kafka;
@@ -48,7 +44,7 @@ public class RequestGenerator implements Runnable {
         }
     }
 
-    protected ArrayList<Pair<String, Integer>> getRandomItemsAndQuantities(int number, int variety){
+    private ArrayList<Pair<String, Integer>> getRandomItemsAndQuantities(int number, int variety){
         Random rnd= new Random(System.currentTimeMillis());
         ArrayList<Pair<String, Integer>> items = new ArrayList<Pair<String, Integer>>();
         for (int i = 0; i < number; i++){

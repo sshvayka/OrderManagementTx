@@ -10,17 +10,14 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.UUID;
 
-/**
- * Created by ruben.casado.tejedor on 30/08/2016.
- */
 public class StockVisibilityResponse implements MessageBody {
 
-    public UUID order_id;
-    public ArrayList<Pair<String, Integer>> quantity;
-    protected ArrayList<String> stock_id;
-    public Hashtable<String, ArrayList<Pair<String,Integer>>> stocks;
+    private UUID order_id;
+    private ArrayList<Pair<String, Integer>> quantity;
+    private ArrayList<String> stock_id;
+    private Hashtable<String, ArrayList<Pair<String,Integer>>> stocks;
 
-    static Logger log = LogManager.getLogger(StockVisibilityResponse.class.getName());
+    private static Logger log = LogManager.getLogger(StockVisibilityResponse.class);
 
     public StockVisibilityResponse (UUID order_id, ArrayList<String> stock_id, ArrayList<Pair<String, Integer>> quantity){
         this.stock_id = stock_id;
@@ -43,5 +40,21 @@ public class StockVisibilityResponse implements MessageBody {
         } else {
             log.error("Error in ADD method - there is no item : " + item_id);
         }
+    }
+
+    public UUID getOrder_id() {
+        return order_id;
+    }
+
+    public ArrayList<Pair<String, Integer>> getQuantity() {
+        return quantity;
+    }
+
+    public ArrayList<String> getStock_id() {
+        return stock_id;
+    }
+
+    public Hashtable<String, ArrayList<Pair<String, Integer>>> getStocks() {
+        return stocks;
     }
 }

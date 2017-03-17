@@ -12,10 +12,6 @@ import java.util.Iterator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
-/**
- * Created by ruben.casado.tejedor on 30/08/2016.
- */
 public class StockVisibility extends MicroService {
 
     private static Logger log = LogManager.getLogger(StockVisibility.class);
@@ -31,10 +27,10 @@ public class StockVisibility extends MicroService {
         // There is one topic for each possible destination MS
         StockVisibilityRequest request= (StockVisibilityRequest)message.getMessageBody();
 
-        ArrayList<String> stores = getStores();
-        StockVisibilityResponse  stock = new StockVisibilityResponse(request.order_id, request.stock_id, request.orderManagementRequest.items);
-        Iterator<String> itr = request.stock_id.iterator();
-        log.debug(request.order_id + " - Number of items for stock request: " + request.stock_id.size());
+        ArrayList<String> stores = super.getStores();
+        StockVisibilityResponse  stock = new StockVisibilityResponse(request.getOrder_id(), request.getStock_id(), request.getOrderManagementRequest().getItems());
+        Iterator<String> itr = request.getStock_id().iterator();
+        log.debug(request.getOrder_id() + " - Number of items for stock request: " + request.getStock_id().size());
         // Iterate all the products and for each product, all the associate store
         while (itr.hasNext()){
             String item_id = itr.next();
@@ -44,7 +40,7 @@ public class StockVisibility extends MicroService {
                 log.debug(id);
                 JsonDocument found = null;
                 try {
-                    found = bucket.get(id);
+                    found = super.getBucket().get(id);
                 } catch (RuntimeException e){
                     log.error("Timeout exceeded at GET operation (" + e.getMessage() + ")");
                 }
@@ -54,30 +50,18 @@ public class StockVisibility extends MicroService {
 
                 } else {
                     stock.add(item_id, new Pair<String, Integer>(store_id, 0));
-                    log.debug(request.order_id + " - Item not found in Couchbase: " + id);
+                    log.debug(request.getOrder_id() + " - Item not found in Couchbase: " + id);
                 }
             }
         }
         // Put in kafka the response message
         KafkaMessage msg = new KafkaMessage("OrderManagement","StockVisibilityResponse", stock, this.getType(), message.getSource());
-        this.kafka.putMessage("OrderManagement", msg);
+        super.getKafka().putMessage("OrderManagement", msg);
     }
 
     @Override
     protected void exit() {
         log.info("StockVisibility exit");
 //        db.cluster.disconnect();
-    }
-
-    // Define the set of stores associated to this MS instance
-    protected ArrayList<String> getStores(){
-        ArrayList<String> stores = new ArrayList<String> ();
-        //mock
-        stores.add("Gijon");
-        stores.add("Madrid");
-        stores.add("Burgos");
-        stores.add("Oxford");
-        stores.add("Nancy");
-        return stores;
     }
 }

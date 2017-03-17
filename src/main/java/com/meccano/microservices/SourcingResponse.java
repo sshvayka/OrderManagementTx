@@ -9,12 +9,24 @@ import java.util.UUID;
  */
 public class SourcingResponse implements MessageBody {
 
-    public UUID order_id;
-    public boolean success;
-    public long order_start;
+    private UUID order_id;
+    private boolean success;
+    private long order_start;
 
     public SourcingResponse(UUID order_id, boolean success){
         this.order_id = order_id;
         this.success = success;
+    }
+
+    public UUID getOrder_id() {
+        return order_id;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public long getOrder_start() {
+        return order_start;
     }
 }

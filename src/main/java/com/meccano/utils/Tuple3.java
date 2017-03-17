@@ -5,9 +5,9 @@ package com.meccano.utils;
  */
 public class Tuple3<K,V,T> {
 
-    public K e1;
-    public V e2;
-    public T e3;
+    private K e1;
+    private V e2;
+    private T e3;
 
     public Tuple3(K first, V second,T third ){
         this.e1 = first;

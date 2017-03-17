@@ -8,27 +8,28 @@ import com.meccano.utils.CBConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 /**
- * Created by ruben.casado.tejedor on 30/08/2016.
- *
  * Base class for simulating the MS behaviour using a thread
  * Use a common KafkaBroker to exchange messages with other MS
  */
 public abstract class MicroService implements Runnable {
 
-    protected String type;
-    protected UUID instance;
-    protected KafkaBroker kafka;
-    protected String topic_subscription;
-    protected CBConfig db;
-    protected boolean finish;
+    private String type;
+    private UUID instance;
+    private KafkaBroker kafka;
+    private String topic_subscription;
+    private CBConfig db;
+    private boolean finish;
 
-//    protected CouchbaseCluster cluster;
-    protected Cluster cluster;
-    protected Bucket bucket;
-    protected static Logger log = LogManager.getLogger(MicroService.class);
+    // Couchbase variables
+    private Cluster cluster;
+    private Bucket bucket;
+
+    // Logger Log4J2
+    private static Logger log = LogManager.getLogger(MicroService.class);
 
 
     public MicroService(String type, KafkaBroker kafka, String topic, CBConfig db){
@@ -56,28 +57,11 @@ public abstract class MicroService implements Runnable {
         }
         // Use the cluster connection
         cluster = db.getCluster();
-//        cluster = CouchbaseCluster.create(env, "localhost"); // Puesto a localhost por defecto TODO hacer dinamico
         // Connect to the bucket and open it
         if (db.getPassword() != null)
             bucket = cluster.openBucket(db.getBucket(), db.getPassword());
         else
             bucket = cluster.openBucket(db.getBucket());
-    }
-
-    public String getType(){
-        return this.type;
-    }
-
-    public String getTopicSubscription(){
-        return this.topic_subscription;
-    }
-
-    public UUID getInstance() {
-        return this.instance;
-    }
-
-    public String getID(){
-        return type + "-" + instance.toString();
     }
 
     public void run(){
@@ -92,6 +76,18 @@ public abstract class MicroService implements Runnable {
         }
         exit();
     }
+
+    // Define the set of stores associated to this MS instance
+    protected ArrayList<String> getStores(){
+        ArrayList<String> stores = new ArrayList<String> ();
+        stores.add("Gijon");
+        stores.add("Madrid");
+        stores.add("Burgos");
+        stores.add("Oxford");
+        stores.add("Nancy");
+        return stores;
+    }
+
     protected KafkaMessage consumMessage(){
         return this.kafka.getMessage(this.getTopicSubscription());
     }
@@ -99,4 +95,47 @@ public abstract class MicroService implements Runnable {
     protected abstract void processMessage(KafkaMessage message);
 
     protected abstract void exit();
+
+
+    // Getters
+    protected KafkaBroker getKafka() {
+        return kafka;
+    }
+
+    protected CBConfig getDb() {
+        return db;
+    }
+
+    protected Cluster getCluster() {
+        return cluster;
+    }
+
+    protected Bucket getBucket() {
+        return bucket;
+    }
+
+    public boolean isFinish() {
+        return finish;
+    }
+
+    public void setFinish(boolean finish) {
+        this.finish = finish;
+    }
+
+    protected String getType(){
+        return this.type;
+    }
+
+    protected String getTopicSubscription(){
+        return this.topic_subscription;
+    }
+
+    protected UUID getInstance() {
+        return this.instance;
+    }
+
+    protected String getID(){
+        return type + "-" + instance.toString();
+    }
+
 }
