@@ -36,7 +36,7 @@ public class Main {
 
         // Details for couchbase connection. Localhost default
         CBconfig db = new CBconfig();
-        db.bucket = Main.BUCKET;
+        db.setBucket(Main.BUCKET);
 
 //        // Code for generating fake data in Couchbase
 //        CBDataGenerator generator = new CBDataGenerator(db);

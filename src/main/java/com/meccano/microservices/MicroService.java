@@ -2,9 +2,6 @@ package com.meccano.microservices;
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
 import com.meccano.utils.CBconfig;
@@ -58,13 +55,13 @@ public abstract class MicroService implements Runnable {
             return;
         }
         // Use the cluster connection
-        cluster = db.cluster;
+        cluster = db.getCluster();
 //        cluster = CouchbaseCluster.create(env, "localhost"); // Puesto a localhost por defecto TODO hacer dinamico
         // Connect to the bucket and open it
-        if (db.password != null)
-            bucket = cluster.openBucket(db.bucket, db.password);
+        if (db.getPassword() != null)
+            bucket = cluster.openBucket(db.getBucket(), db.getPassword());
         else
-            bucket = cluster.openBucket(db.bucket);
+            bucket = cluster.openBucket(db.getBucket());
     }
 
     public String getType(){

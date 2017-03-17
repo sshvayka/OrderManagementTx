@@ -12,10 +12,10 @@ import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
  */
 public class CBconfig {
 
-    public CouchbaseCluster cluster;
-    public String clusterURL;
-    public String bucket;
-    public String password;
+    private CouchbaseCluster cluster;
+    private String clusterURL;
+    private String bucket;
+    private String password;
     private CouchbaseEnvironment env = DefaultCouchbaseEnvironment.create();
 
     public CBconfig(){
@@ -30,6 +30,22 @@ public class CBconfig {
         this.bucket = bucket;
         this.password = pass;
         this.cluster = CouchbaseCluster.create(env, this.clusterURL);
+    }
+
+    public CouchbaseCluster getCluster() {
+        return cluster;
+    }
+
+    public String getBucket() {
+        return bucket;
+    }
+
+    public void setBucket(String bucket) {
+        this.bucket = bucket;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public void exit (){

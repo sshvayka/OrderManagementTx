@@ -140,12 +140,12 @@ public class CBDataGenerator {
         }
 
         // Create a cluster reference
-        cluster = this.db.cluster;
+        cluster = this.db.getCluster();
         // Connect to the bucket and open it
-        if (db.password != null)
-            bucket = cluster.openBucket(this.db.bucket, this.db.password);
+        if (db.getPassword() != null)
+            bucket = cluster.openBucket(this.db.getBucket(), this.db.getPassword());
         else
-            bucket = cluster.openBucket(this.db.bucket);
+            bucket = cluster.openBucket(this.db.getBucket());
     }
 
     public String getRandomOrderState() {
