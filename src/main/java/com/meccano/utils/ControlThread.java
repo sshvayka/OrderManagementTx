@@ -7,28 +7,26 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * Created by ruben.casado.tejedor on 29/12/2016.
- *
  * Class to check if all requests has been processed and them kill the threads
  */
 public class ControlThread implements Runnable {
 
     private KafkaBroker kafka;
 
-    // Number of instances of each microservice (thread)
-    private int n_om;
-    private int n_sv;
-    private int n_of;
-    private int n_so;
+    // Number of instances of each Microservice (thread)
+    private int nOrderManagement;
+    private int nStockVisibility;
+    private int nOrderFullfilment;
+    private int nSourcing;
 
     private static Logger log = LogManager.getLogger(Main.class);
 
-    public ControlThread(KafkaBroker kafka, int n_om, int n_sv, int of, int so){
+    public ControlThread(KafkaBroker kafka, int nOrderManagement, int nStockVisibility, int nOrderFullfilment, int nSourcing){
         this.kafka = kafka;
-        this.n_om = n_om;
-        this.n_sv = n_sv;
-        this.n_of = of;
-        this.n_so = so;
+        this.nOrderManagement = nOrderManagement;
+        this.nStockVisibility = nStockVisibility;
+        this.nOrderFullfilment = nOrderFullfilment;
+        this.nSourcing = nSourcing;
     }
 
     public void run() {
@@ -47,25 +45,24 @@ public class ControlThread implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         // Send kafka message to all microservices to kill them
-        for (int i = 0; i < this.n_sv; i++) {
+        for (int i = 0; i < this.nStockVisibility; i++) {
             KafkaMessage message = new KafkaMessage("StockVisibility", "Kill", null, null, null);
             this.kafka.putMessage("StockVisibility", message);
             log.info("StockVisibility kill message");
         }
-        for (int i = 0; i < this.n_of; i++) {
+        for (int i = 0; i < this.nOrderFullfilment; i++) {
             KafkaMessage message = new KafkaMessage("OrderFulfillment", "Kill", null, null, null);
             this.kafka.putMessage("OrderFulfillment", message);
             log.info("OrderFulfillment kill message");
-
         }
-        for (int i = 0; i < this.n_so; i++) {
+        for (int i = 0; i < this.nSourcing; i++) {
             KafkaMessage message = new KafkaMessage("Sourcing", "Kill", null, null, null);
             this.kafka.putMessage("Sourcing", message);
             log.info("Sourcing kill message");
-
         }
-        for (int i = 0; i < this.n_om; i++) {
+        for (int i = 0; i < this.nOrderManagement; i++) {
             KafkaMessage message = new KafkaMessage("OrderManagement", "Kill", null, null, null);
             this.kafka.putMessage("OrderManagement", message);
             log.info("OrderManagement kill message");

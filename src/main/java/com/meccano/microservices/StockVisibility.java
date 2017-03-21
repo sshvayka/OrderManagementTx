@@ -25,18 +25,17 @@ public class StockVisibility extends MicroService {
     protected void processMessage(KafkaMessage message) {
         // Get message from Kafka
         // There is one topic for each possible destination MS
-        StockVisibilityRequest request= (StockVisibilityRequest)message.getMessageBody();
+        StockVisibilityRequest request= (StockVisibilityRequest) message.getMessageBody();
 
         ArrayList<String> stores = super.getStores();
-        StockVisibilityResponse  stock = new StockVisibilityResponse(request.getOrder_id(), request.getStock_id(), request.getOrderManagementRequest().getItems());
-        Iterator<String> itr = request.getStock_id().iterator();
-        log.debug(request.getOrder_id() + " - Number of items for stock request: " + request.getStock_id().size());
+        StockVisibilityResponse  stock = new StockVisibilityResponse(request.getOrderId(), request.getStockId(), request.getOrderManagementRequest().getItems());
+//        Iterator<String> itr = request.getStock_id().iterator();
+        log.debug(request.getOrderId() + " - Number of items for stock request: " + request.getStockId().size());
         // Iterate all the products and for each product, all the associate store
-        while (itr.hasNext()){
-            String item_id = itr.next();
-            for (String store_id : stores) {
+        for(String itemId : request.getStockId()){
+            for(String storeId : stores){
                 // The document_id is store_id-item_id
-                String id = store_id + "-" + item_id;
+                String id = storeId + "-" + itemId;
                 log.debug(id);
                 JsonDocument found = null;
                 try {
@@ -46,15 +45,14 @@ public class StockVisibility extends MicroService {
                 }
                 if (found != null){
                     Integer quantity = found.content().getInt("quantity") - 1; // 1 item is 0 to use atomic opr
-                    stock.add(item_id, new Pair<String, Integer>(store_id, quantity));
-
+                    stock.add(itemId, new Pair<>(storeId, quantity));
                 } else {
-                    stock.add(item_id, new Pair<String, Integer>(store_id, 0));
-                    log.debug(request.getOrder_id() + " - Item not found in Couchbase: " + id);
+                    stock.add(itemId, new Pair<>(storeId, 0));
+                    log.debug(request.getOrderId() + " - Item not found in Couchbase: " + id);
                 }
             }
         }
-        // Put in kafka the response message
+        // Put in Kafka the response message
         KafkaMessage msg = new KafkaMessage("OrderManagement","StockVisibilityResponse", stock, this.getType(), message.getSource());
         super.getKafka().putMessage("OrderManagement", msg);
     }

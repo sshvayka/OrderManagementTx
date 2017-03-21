@@ -22,60 +22,56 @@ public class KafkaBroker {
     }
 
     public KafkaBroker(List<String> names){
-        Iterator<String> itr = names.iterator();
-        while (itr.hasNext()){
-            topics.add(new KafkaTopic(itr.next()));
+        for (String name : names) {
+            topics.add(new KafkaTopic(name));
         }
     }
 
-    public void createTopic (String topic_name){
-        boolean exist= false;
-        KafkaTopic topic;
-        Iterator<KafkaTopic> itr = topics.iterator();
-        while (itr.hasNext()) {
-            topic = itr.next();
-            if (topic.getName().equals(topic_name))
+    public void createTopic (String topicName){
+        boolean exist = false;
+        for (KafkaTopic topic : topics){
+            if (topic.getName().equals(topicName)){
                 exist = true;
+                break;
+            }
         }
         if (!exist)
-            topics.add(new KafkaTopic(topic_name));
+            topics.add(new KafkaTopic(topicName));
     }
 
     public ArrayList<String> getTopicsName(){
-        ArrayList<String> names = new ArrayList<String>();
-        Iterator<KafkaTopic> itr = topics.iterator();
-        while (itr.hasNext()){
-            names.add(itr.next().getName());
+        ArrayList<String> names = new ArrayList<>();
+        for (KafkaTopic topic : topics) {
+            names.add(topic.getName());
         }
         return names;
     }
 
-    public KafkaTopic getTopic(String topic_name){
-        Iterator<KafkaTopic> itr = topics.iterator();
-        KafkaTopic topic = null;
-        while (itr.hasNext()) {
-            topic = itr.next();
-            if (topic.getName().equals(topic_name))
-                return topic;
+    public KafkaTopic getTopic(String topicName){
+        KafkaTopic topicFound = null;
+        for(KafkaTopic topic : topics){
+            if (topic.getName().equals(topicName)){
+                topicFound = topic;
+                break;
+            }
         }
-        return topic;
+        return topicFound;
     }
 
-    public KafkaMessage getMessage(String topic_name){
-        KafkaTopic topic = this.getTopic(topic_name);
+    public KafkaMessage getMessage(String topicName){
+        KafkaTopic topic = this.getTopic(topicName);
+        KafkaMessage msg = null;
         if (topic != null){
             if (topic.size() > 0)
-                return topic.get();
-            else
-                return null;
+                msg = topic.get();
         } else {
-            log.error("[ERROR] KakfaBroker - "+ topic_name+" KakfaTopic is null");
-            return null;
+            log.error("[ERROR] KakfaBroker - " + topicName + " KafkaTopic is null");
         }
+        return msg;
     }
 
-    public void putMessage(String topic_name, KafkaMessage msg){
-        KafkaTopic topic = this.getTopic(topic_name);
+    public void putMessage(String topicName, KafkaMessage msg){
+        KafkaTopic topic = this.getTopic(topicName);
         if (topic != null)
             topic.put(msg);
     }
@@ -102,10 +98,7 @@ public class KafkaBroker {
 
     public int totalSize(){
         int total = 0;
-        Iterator<KafkaTopic> itr = topics.iterator();
-        KafkaTopic topic;
-        while (itr.hasNext()) {
-            topic = itr.next();
+        for(KafkaTopic topic : topics){
             total += topic.size();
         }
         return total;

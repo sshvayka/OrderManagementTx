@@ -3,6 +3,7 @@ package com.meccano;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.microservices.*;
 import com.meccano.utils.CBConfig;
+import com.meccano.utils.CBDataGenerator;
 import com.meccano.utils.ControlThread;
 import com.meccano.utils.RequestGenerator;
 import org.apache.logging.log4j.LogManager;
@@ -37,12 +38,12 @@ public class Main {
         CBConfig db = new CBConfig();
         db.setBucket(Main.BUCKET);
 
-//        // Code for generating fake data in Couchbase
-//        CBDataGenerator generator = new CBDataGenerator(db);
-//        generator.createItems(500, 100);
-//        //generator.createOrders(500);
-//        generator.close();
-//        log.info("Random items created");
+        // Code for generating fake data in Couchbase
+        CBDataGenerator generator = new CBDataGenerator(db);
+        generator.createItems(500, 100);
+        //generator.createOrders(500);
+        generator.close();
+        log.info("Random items created");
 
         // Kafka topics creation for the whole scenario
         KafkaBroker kafka = new KafkaBroker();
@@ -85,8 +86,8 @@ public class Main {
         // Sourcing pull
         ArrayList<Thread> sourcing = new ArrayList<Thread>();
         for (int i = 0; i < Main.N_SOURCING; i++){
-            Thread t = new Thread(new SourcingPL(kafka, db));
-//            Thread t = new Thread(new SourcingOL(kafka, db));
+//            Thread t = new Thread(new SourcingPL(kafka, db));
+            Thread t = new Thread(new SourcingOL(kafka, db));
             t.start();
 //            t.join();
             sourcing.add(t);

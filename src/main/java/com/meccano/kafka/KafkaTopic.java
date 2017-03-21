@@ -15,7 +15,7 @@ public class KafkaTopic {
 
     protected KafkaTopic (String name){
         this.name = name;
-        this.topic = new ConcurrentLinkedQueue<KafkaMessage> ();
+        this.topic = new ConcurrentLinkedQueue<> ();
     }
 
     protected String getName(){

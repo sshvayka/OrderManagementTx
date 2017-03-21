@@ -9,48 +9,43 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 
-/**
- * Created by ruben.casado.tejedor on 07/09/2016.
- */
 public class MultiDocumentTransactionManager {
 
     private CBConfig db;
     private CouchbaseCluster cluster;
     private Bucket bucket;
-    private ArrayList<String> document_ids;
-    private ArrayList<JsonDocument> original_documents;
-    private ArrayList<String> updated_ids;
-    private long timeout;
-    private String owner;
+    private ArrayList<String> docsIds;
+    private ArrayList<JsonDocument> originalDocs;
+    private ArrayList<String> updatedIds;
+//    private long timeout;
+//    private String owner;
     private String state;
 
     private static Logger log = LogManager.getLogger(MultiDocumentTransactionManager.class.getName());
 
     public MultiDocumentTransactionManager(CBConfig db){
-        document_ids = new ArrayList<String>();
-        original_documents = new ArrayList<JsonDocument>();
-        updated_ids = new ArrayList<String>();
-
-        timeout = 100;
-        state = new String("INITIAL");
         this.db = db;
+        this.docsIds = new ArrayList<>();
+        this.originalDocs = new ArrayList<>();
+        this.updatedIds = new ArrayList<>();
+//        this.timeout = 100;
+        this.state = "INITIAL";
 
         if (this.db == null) {
             log.error("[ERROR] MultiDocumentTransactionManager: CBConfig is null");
-            return;
+        } else {
+            // Create a cluster reference
+            cluster = this.db.getCluster();
+            // Connect to the bucket and open it
+            if (db.getPassword() != null)
+                bucket = cluster.openBucket(this.db.getBucket(), this.db.getPassword());
+            else
+                bucket = cluster.openBucket(this.db.getBucket());
         }
-
-        // Create a cluster reference
-        cluster = this.db.getCluster();
-        // Connect to the bucket and open it
-        if (db.getPassword() != null)
-            bucket = cluster.openBucket(this.db.getBucket(), this.db.getPassword());
-        else
-            bucket = cluster.openBucket(this.db.getBucket());
     }
 
     public void partialCommit(String document_id){
-        this.updated_ids.add(document_id);
+        this.updatedIds.add(document_id);
         this.state = "PARTIAL_COMMIT";
     }
 
@@ -64,17 +59,19 @@ public class MultiDocumentTransactionManager {
     }
 
     protected JsonDocument getOriginal(String id){
-        for (int i = 0; i < this.original_documents.size(); i++){
-            JsonDocument d = this.original_documents.get(i);
-            if (d.id() == id)
-                return d;
+        JsonDocument result = null;
+        for (JsonDocument d : this.originalDocs) {
+            if (d.id().equals(id)) {
+                result = d;
+                break;
+            }
         }
-        return null;
+        return result;
     }
 
     public void rollback(){
-        for (int i = 0; i < updated_ids.size(); i++){
-           JsonDocument original = this.getOriginal(updated_ids.get(i));
+        for (String updated_id : updatedIds) {
+            JsonDocument original = this.getOriginal(updated_id);
             if (original != null)
                 bucket.upsert(original);
             else
@@ -83,9 +80,9 @@ public class MultiDocumentTransactionManager {
         this.state = "ROLLBACKED";
     }
 
-    protected void removeLockDocuments(){
-        for (int i = 0; i < original_documents.size(); i++){
-            String original_id = original_documents.get(i).id();
+    private void removeLockDocuments(){
+        for (JsonDocument original_document : originalDocs) {
+            String original_id = original_document.id();
             this.bucket.remove(original_id + "_lock");
         }
     }
@@ -95,20 +92,20 @@ public class MultiDocumentTransactionManager {
     }
 
     public boolean createLockDocument(String document_id){
+        boolean result = true;
         JsonDocument found = bucket.get(document_id);
-        original_documents.add(found);
-        JsonObject object = found.content();
+        originalDocs.add(found);
+//        JsonObject object = found.content();
 
         JsonDocument lock_document = JsonDocument.create(document_id + "_lock");
         try {
             bucket.upsert(lock_document);
             log.debug("[TX] Saved document "+ lock_document.id());
-        }
-        catch (Exception e){
+        } catch (Exception e){
             log.error("[ERROR] MultiDocumentTransactionManager: " + document_id + " already blocked");
-            return false;
+            result = false;
         }
-        return true;
+        return result;
     }
 
     public String getState(){

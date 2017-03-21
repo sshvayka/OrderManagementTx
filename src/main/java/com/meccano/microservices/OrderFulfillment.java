@@ -12,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 
 public class OrderFulfillment extends MicroService {
@@ -24,20 +23,16 @@ public class OrderFulfillment extends MicroService {
     }
 
     protected void processMessage(KafkaMessage message) {
-        OrderFulfillmentRequest request= (OrderFulfillmentRequest)message.getMessageBody();
-
+        OrderFulfillmentRequest request = (OrderFulfillmentRequest)message.getMessageBody();
+        Hashtable<String,List<ViewRow>> results = new Hashtable<>();
         JsonArray keys = JsonArray.create();
-        // iterate all items
-        Iterator<String> itr = request.getItem_id().iterator();
-        Hashtable<String,List<ViewRow>> results = new Hashtable<String, List<ViewRow>>();
-        while (itr.hasNext()){
-            //for each item, get the allocation of each associate store
-            String item_id = itr.next();
-            for (String s: request.getStores()){
+        // Iterate all items
+        for(String itemId : request.getItemId()){
+            for (String storeId : request.getStores()){
                 //["item_id","store_id"]
                 JsonArray j = JsonArray.create();
-                j.add(item_id);
-                j.add(s);
+                j.add(itemId);
+                j.add(storeId);
                 keys.add(j);
             }
             List<ViewRow> rowResult = new ArrayList<>();
@@ -49,14 +44,14 @@ public class OrderFulfillment extends MicroService {
                 log.error("Error del Observable al hacer la operacion con la Vista (" + e.getMessage() + ")");
             }
 //            log.debug(request.order_id + " Resultados MapReduce:" + rowResult.size());
-            results.put(item_id, rowResult);
+            results.put(itemId, rowResult);
         }
 
-        OrderFulfillmentResponse body = new OrderFulfillmentResponse(request.getOrder_id(), results, request.getStockVisibilityResponse());
-        //put in kafka the response message
+        OrderFulfillmentResponse body = new OrderFulfillmentResponse(request.getOrderId(), results, request.getStockVisibilityResponse());
+        // Put in Kafka the response message
         KafkaMessage msg = new KafkaMessage("OrderManagement","OrderFulfillmentResponse", body, this.getType(), message.getSource());
         super.getKafka().putMessage("OrderManagement", msg);
-        log.debug(request.getOrder_id() + " - Created Kafka message in topic OrderManagement. Type: OrderFulfillmentResponse");
+        log.debug(request.getOrderId() + " - Created Kafka message in topic OrderManagement. Type: OrderFulfillmentResponse");
     }
 
     protected void exit() {

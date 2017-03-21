@@ -5,45 +5,39 @@ import com.meccano.utils.Pair;
 
 import java.util.*;
 
-/**
- * Created by ruben.casado.tejedor on 01/09/2016.
- */
 public class OrderFulfillmentRequest implements MessageBody {
 
     private List<String> stores;
-    private ArrayList<String> item_id;
-    private UUID order_id;
+    private ArrayList<String> itemId;
+    private UUID orderId;
     private StockVisibilityResponse stockVisibilityResponse;
 
     public OrderFulfillmentRequest(StockVisibilityResponse sr){
-        this.order_id = sr.getOrder_id();
-        this.item_id = sr.getStock_id();
+        this.orderId = sr.getOrderId();
+        this.itemId = sr.getStockId();
         this.stockVisibilityResponse = sr;
 
         //get stores
         Collection<ArrayList<Pair<String, Integer>>> stocks = sr.getStocks().values();
-        Set<String> set = new HashSet<String>();
-        Iterator<ArrayList<Pair<String, Integer>>> itr = stocks.iterator();
-        while (itr.hasNext()){
-            ArrayList<Pair<String, Integer>> current  = itr.next();
-            Iterator<Pair<String, Integer>> itr2= current.iterator();
-            while (itr2.hasNext()){
-                set.add(itr2.next().getKey());
+        Set<String> set = new HashSet<>();
+        for (ArrayList<Pair<String, Integer>> current : stocks) {
+            for (Pair<String, Integer> aCurrent : current) {
+                set.add(aCurrent.getKey());
             }
         }
-        this.stores = new ArrayList<String>(set);
+        this.stores = new ArrayList<>(set);
     }
 
     public List<String> getStores() {
         return stores;
     }
 
-    public ArrayList<String> getItem_id() {
-        return item_id;
+    public ArrayList<String> getItemId() {
+        return itemId;
     }
 
-    public UUID getOrder_id() {
-        return order_id;
+    public UUID getOrderId() {
+        return orderId;
     }
 
     public StockVisibilityResponse getStockVisibilityResponse() {

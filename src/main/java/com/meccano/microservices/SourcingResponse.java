@@ -4,29 +4,26 @@ import com.meccano.kafka.MessageBody;
 
 import java.util.UUID;
 
-/**
- * Created by ruben.casado.tejedor on 07/09/2016.
- */
 public class SourcingResponse implements MessageBody {
 
-    private UUID order_id;
+    private UUID orderId;
     private boolean success;
-    private long order_start;
+    private long orderStart;
 
-    public SourcingResponse(UUID order_id, boolean success){
-        this.order_id = order_id;
+    public SourcingResponse(UUID orderId, boolean success){
+        this.orderId = orderId;
         this.success = success;
     }
 
-    public UUID getOrder_id() {
-        return order_id;
+    public UUID getOrderId() {
+        return orderId;
     }
 
     public boolean isSuccess() {
         return success;
     }
 
-    public long getOrder_start() {
-        return order_start;
+    public long getOrderStart() {
+        return orderStart;
     }
 }

@@ -19,50 +19,49 @@ public class OrderManagement extends MicroService {
         this.path = path;
     }
 
-    protected void processOrderRequest(OrderManagementRequest request){
+    private void processOrderRequest(OrderManagementRequest request){
         // Create the StockVisibility request and send message to Kafka
         StockVisibilityRequest sr = new StockVisibilityRequest(request);
         KafkaMessage message = new KafkaMessage("StockVisibility", "StockVisibilityRequest", sr, this.getType(),"StockVisibility");
         super.getKafka().putMessage("StockVisibility", message);
     }
 
-    protected void processStockVisibilityResponse (StockVisibilityResponse response){
+    private void processStockVisibilityResponse(StockVisibilityResponse response){
         // TO DO
         OrderFulfillmentRequest of = new OrderFulfillmentRequest(response);
         KafkaMessage message = new KafkaMessage("OrderFulfillment","OrderFulfillmentRequest", of, this.getType(),"OrderFulfillment");
         super.getKafka().putMessage("OrderFulfillment", message);
     }
 
-    protected void processFulfillmentResponse(OrderFulfillmentResponse response){
-            SourcingRequest body = new SourcingRequest(response.getOrder_id(),
-                                                    response.getStockVisibilityResponse(),
-                                                    response,
-                                                    response.getStockVisibilityResponse().getQuantity());
-            KafkaMessage msg = new KafkaMessage("Sourcing","SourcingRequest", body, this.getType(), "Sourcing");
-            super.getKafka().putMessage("Sourcing", msg);
-        }
+    private void processFulfillmentResponse(OrderFulfillmentResponse response){
+        SourcingRequest body = new SourcingRequest(response.getOrderId(),
+                response.getStockVisibilityResponse(),
+                response,
+                response.getStockVisibilityResponse().getQuantity());
+        KafkaMessage msg = new KafkaMessage("Sourcing","SourcingRequest", body, this.getType(), "Sourcing");
+        super.getKafka().putMessage("Sourcing", msg);
+    }
 
-    protected synchronized void processSourcingResponse(SourcingResponse response)  {
+    private synchronized void processSourcingResponse(SourcingResponse response)  {
         long finish_time = System.currentTimeMillis();
         try {
             File oFile = new File(this.path).getAbsoluteFile();
-            if (!oFile.exists()) {
-                oFile.createNewFile();
+            if(oFile.createNewFile()){
                 log.info("Created file: " + this.path);
-            }
+            } // Si el archivo ya existe, se usa
             // Log the information
             if (oFile.canWrite()) {
-                this.file =  new BufferedWriter(new FileWriter(this.path,true));
-                //order_id
-                this.file.write(response.getOrder_id().toString());
+                this.file = new BufferedWriter(new FileWriter(this.path,true));
+                // Order_id
+                this.file.write(response.getOrderId().toString());
                 this.file.write(",");
-                //init time
-                this.file.write(Long.toString(response.getOrder_start()));
+                // Init time
+                this.file.write(Long.toString(response.getOrderStart()));
                 this.file.write(",");
-                //finish time
+                // Finish time
                 this.file.write(Long.toString(finish_time));
                 this.file.write(",");
-                //result
+                // Result
                 this.file.write(Boolean.toString(response.isSuccess()) + "\n");
                 this.file.close();
             }
@@ -75,22 +74,29 @@ public class OrderManagement extends MicroService {
     public void run(){
         // Process intermediate results until the end of the order responses
         while (!super.isFinish()){
-            KafkaMessage message = consumMessage();
-            if (message != null){
+            KafkaMessage message = consumeMessage();
+            if (message != null) {
                 log.debug("Current message:" + message.getType());
-                if (message.getType() == "OrderManagementRequest")
-                    this.processOrderRequest((OrderManagementRequest)message.getMessageBody());
-                else if (message.getType()=="SourcingResponse")
-                    this.processSourcingResponse((SourcingResponse) message.getMessageBody());
-                else if (message.getType()=="StockVisibilityResponse")
-                    this.processStockVisibilityResponse((StockVisibilityResponse) message.getMessageBody());
-                else if (message.getType()=="OrderFulfillmentResponse")
-                    this.processFulfillmentResponse((OrderFulfillmentResponse) message.getMessageBody());
-                else if (message.getType()=="Kill") {
-                    this.exit();
-                    super.setFinish(true);
-                } else
-                    log.error("[ERROR] OrderManagemnet: unknow message " + message.getType());
+                switch (message.getType()) {
+                    case "OrderManagementRequest":
+                        this.processOrderRequest((OrderManagementRequest) message.getMessageBody());
+                        break;
+                    case "SourcingResponse":
+                        this.processSourcingResponse((SourcingResponse) message.getMessageBody());
+                        break;
+                    case "StockVisibilityResponse":
+                        this.processStockVisibilityResponse((StockVisibilityResponse) message.getMessageBody());
+                        break;
+                    case "OrderFulfillmentResponse":
+                        this.processFulfillmentResponse((OrderFulfillmentResponse) message.getMessageBody());
+                        break;
+                    case "Kill":
+                        this.exit();
+                        super.setFinish(true);
+                        break;
+                    default:
+                        log.error("[ERROR] OrderManagemnet: unknow message " + message.getType());
+                }
             }
         }
     }
@@ -111,7 +117,7 @@ public class OrderManagement extends MicroService {
             log.info("OrderManagement exit");
             super.getDb().getCluster().disconnect();
         } catch (Exception e) {
-            log.error(" Exit: "+ e.toString());
+            log.error(" Exit: " + e.toString());
         }
     }
 }

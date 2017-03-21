@@ -20,9 +20,9 @@ public abstract class MicroService implements Runnable {
     private String type;
     private UUID instance;
     private KafkaBroker kafka;
-    private String topic_subscription;
+    private String topicSubscription;
     private CBConfig db;
-    private boolean finish;
+    private boolean finish = false;
 
     // Couchbase variables
     private Cluster cluster;
@@ -31,45 +31,39 @@ public abstract class MicroService implements Runnable {
     // Logger Log4J2
     private static Logger log = LogManager.getLogger(MicroService.class);
 
-
     public MicroService(String type, KafkaBroker kafka, String topic, CBConfig db){
         this.type = type;
         this.instance = UUID.randomUUID();
-        this.topic_subscription = topic;
+        this.topicSubscription = topic;
 
         log.info("Microservice thread created");
 
-        if (db != null) {
+        if (db != null && kafka != null) {
             this.db = db;
-            this.finish = false;
-        } else {
-            log.error("[ERROR] MS " + type + " generation: CBConfig is null");
-            this.finish = true;
-            return;
-        }
-        if (kafka != null) {
             this.kafka = kafka;
             this.finish = false;
+            // Use the cluster connection
+            this.cluster = db.getCluster();
+            // Connect to the bucket and open it
+            if (db.getPassword() != null)
+                this.bucket = cluster.openBucket(db.getBucket(), db.getPassword());
+            else
+                this.bucket = cluster.openBucket(db.getBucket());
+        } else if (db == null){
+            log.error("[ERROR] MS " + type + " generation: CBConfig is null");
+            this.finish = true;
         } else {
             log.error("[ERROR] MS " + type + " generation: Kafka is null");
             this.finish = true;
-            return;
         }
-        // Use the cluster connection
-        cluster = db.getCluster();
-        // Connect to the bucket and open it
-        if (db.getPassword() != null)
-            bucket = cluster.openBucket(db.getBucket(), db.getPassword());
-        else
-            bucket = cluster.openBucket(db.getBucket());
     }
 
     public void run(){
         KafkaMessage message;
         while (!finish){
-            message = consumMessage();
+            message = consumeMessage();
             if(message != null)
-                if (message.getType() == "Kill")
+                if (message.getType().equals("Kill"))
                     this.finish = true;
                 else
                     this.processMessage(message);
@@ -79,7 +73,7 @@ public abstract class MicroService implements Runnable {
 
     // Define the set of stores associated to this MS instance
     protected ArrayList<String> getStores(){
-        ArrayList<String> stores = new ArrayList<String> ();
+        ArrayList<String> stores = new ArrayList<>();
         stores.add("Gijon");
         stores.add("Madrid");
         stores.add("Burgos");
@@ -88,7 +82,7 @@ public abstract class MicroService implements Runnable {
         return stores;
     }
 
-    protected KafkaMessage consumMessage(){
+    protected KafkaMessage consumeMessage(){
         return this.kafka.getMessage(this.getTopicSubscription());
     }
 
@@ -96,8 +90,8 @@ public abstract class MicroService implements Runnable {
 
     protected abstract void exit();
 
+    // Getters y setters
 
-    // Getters
     protected KafkaBroker getKafka() {
         return kafka;
     }
@@ -127,7 +121,7 @@ public abstract class MicroService implements Runnable {
     }
 
     protected String getTopicSubscription(){
-        return this.topic_subscription;
+        return this.topicSubscription;
     }
 
     protected UUID getInstance() {

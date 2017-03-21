@@ -1,11 +1,10 @@
 package com.meccano.kafka;
 
 /**
- * Created by ruben.casado.tejedor on 30/08/2016.
  * Base class for implementing the messages exchanged by the MS using Kafka broker
  */
 public class KafkaMessage {
-    private String  type;
+    private String type;
     private MessageBody body;
     private String source;
     private String destination;

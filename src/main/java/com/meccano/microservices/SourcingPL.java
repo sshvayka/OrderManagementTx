@@ -61,35 +61,33 @@ public class SourcingPL extends MicroService {
 
     protected void processMessage(KafkaMessage message) {
         SourcingRequest request = (SourcingRequest)message.getMessageBody();
-        ArrayList<JsonDocument> blocks = new ArrayList<JsonDocument> ();
-        Iterator<String> itr = request.getStocks().getStock_id().iterator();
+        ArrayList<JsonDocument> blocks = new ArrayList<>();
 
         //iterate all item_id
-        while (itr.hasNext()){
-            String stock_id = itr.next();
+        for (String stock_id : request.getStocks().getStockId()) {
             //get a random store with enough stock
-            String id = this.getRandomStore(request.getStocks(),request.getAllocations(), stock_id, (Integer)request.getQuantity().get(stock_id));
+            String id = this.getRandomStore(request.getStocks(), request.getAllocations(), stock_id, request.getQuantity().get(stock_id));
             //block the document, if it is already blocked the transaction is aborted
             try {
-                log.debug(request.getOrder_id() + "Document to lock: " + id);
-                if(id != null){
+                log.debug(request.getOrderId() + "Document to lock: " + id);
+                if (id != null) {
                     JsonDocument found = super.getBucket().getAndLock(id, this.locking_time);
                     blocks.add(found);
                 } else {
                     log.error("[ERROR] SourcingPL not enough elements");
-                    this.abort(request.getOrder_id(), blocks);
+                    this.abort(request.getOrderId(), blocks);
                     return;
                 }
-            } catch (Exception e){
-                log.error("[ERROR] SourcingPL blocking element "+ e.toString());
-                this.abort(request.getOrder_id(), blocks);
+            } catch (Exception e) {
+                log.error("[ERROR] SourcingPL blocking element " + e.toString());
+                this.abort(request.getOrderId(), blocks);
                 return;
             }
         }
         // All documents has been successfully blocked so the transaction will commit
-        this.createOrder(request.getOrder_id().toString(), blocks, request.getQuantity());
+        this.createOrder(request.getOrderId().toString(), blocks, request.getQuantity());
         this.unlockDocuments(blocks);
-        SourcingResponse body = new SourcingResponse(request.getOrder_id(),true);
+        SourcingResponse body = new SourcingResponse(request.getOrderId(),true);
         // Put in Kafka the response message
         KafkaMessage msg = new KafkaMessage("OrderManagement","SourcingResponse", body, this.getType(), message.getSource());
         super.getKafka().putMessage("OrderManagement", msg);
@@ -105,10 +103,10 @@ public class SourcingPL extends MicroService {
     }
 
     private void unlockDocuments(ArrayList<JsonDocument> blocks){
-        for (int i = 0; i < blocks.size(); i++){
-            String document_id = blocks.get(i).id();
-            long cas = blocks.get(i).cas();
-            super.getBucket().unlock(document_id,cas);
+        for (JsonDocument block : blocks) {
+            String document_id = block.id();
+            long cas = block.cas();
+            super.getBucket().unlock(document_id, cas);
         }
     }
 
@@ -122,25 +120,25 @@ public class SourcingPL extends MicroService {
 
         // Create suborders - one for each item (could be improved to group items from the same store)
         JsonArray suborders = JsonArray.create();
-        for (int j = 0; j < blocks.size(); j++) {
+        for (JsonDocument block : blocks) {
             JsonObject suborder = JsonObject.create()
                     .put("suborder_id", UUID.randomUUID().toString())
-                    .put("store_id", blocks.get(j).content().getString("store_id"))
+                    .put("store_id", block.content().getString("store_id"))
                     .put("state", "ALLOCATED");
             // Create item for each suborder
             JsonArray items = JsonArray.create();
             JsonObject item = JsonObject.create()
-                    .put("item_id", blocks.get(j).content().getString("item_id"))
-                    .put("price", blocks.get(j).content().getInt("price"))
-                    .put("currency", blocks.get(j).content().getString("currency"))
-                    .put("quantity", quantity.get(blocks.get(j).content().getString("item_id")));
+                    .put("item_id", block.content().getString("item_id"))
+                    .put("price", block.content().getInt("price"))
+                    .put("currency", block.content().getString("currency"))
+                    .put("quantity", quantity.get(block.content().getString("item_id")));
             items.add(item);
             suborder.put("items", items);
             suborders.add(suborder);
         }
         order.put("suborders", suborders);
         JsonDocument doc = JsonDocument.create(order_id, order);
-        JsonDocument inserted = super.getBucket().upsert(doc);
+        super.getBucket().upsert(doc);
         log.debug(order_id + " - Order saved in CouchBase");
     }
 

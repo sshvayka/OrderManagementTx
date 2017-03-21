@@ -8,9 +8,6 @@ import com.couchbase.client.java.document.json.JsonObject;
 
 import java.util.*;
 
-/**
- * Created by ruben.casado.tejedor on 31/08/2016.
- */
 public class CBDataGenerator {
 
     private CBConfig db;
@@ -26,33 +23,33 @@ public class CBDataGenerator {
     }
 
     public void close(){
-        cluster.disconnect();
+//        cluster.disconnect();
     }
 
     public void createItems(int num, int variety){
         JsonObject item;
-        String item_id;
-        String store_id;
+        String itemId;
+        String storeId;
         this.variety = variety;
         for (int i = 0; i < num; i++){
-            item_id = getRandomItem(variety);
-            store_id = getRandomStore();
+            itemId = getRandomItem(variety);
+            storeId = getRandomStore();
             item = JsonObject.create()
                     .put("_type", "stock")
-                    .put("item_id", item_id)
-                    .put("store_id", store_id)
+                    .put("itemId", itemId)
+                    .put("storeId", storeId)
                     .put("quantity", rd.nextInt(100) + 1)
                     .put("price", rd.nextInt(49) + 1)
                     .put("currency", "E")
                     .put("category", getRandomCategories());
-            JsonDocument doc = JsonDocument.create(store_id + "-" + item_id, item);
-            JsonDocument inserted = bucket.upsert(doc);
+            JsonDocument doc = JsonDocument.create(storeId + "-" + itemId, item);
+            bucket.upsert(doc);
         }
     }
 
     private JsonArray getRandomCategories(){
-        int number= rd.nextInt(3) + 1;
-        Set<String> set = new TreeSet<String>();
+        int number = rd.nextInt(3) + 1;
+        Set<String> set = new TreeSet<>();
 
         for (int i = 0; i < number; i++) {
             int c = rd.nextInt(6);
@@ -77,13 +74,11 @@ public class CBDataGenerator {
                     break;
                 default:
                     set.add("MODA");
-                    break;
             }
         }
-        List<String> categories= new ArrayList<String>();
-        Iterator<String> itr = set.iterator();
-        while (itr.hasNext())
-            categories.add(itr.next());
+        List<String> categories= new ArrayList<>();
+        for (String aSet : set)
+            categories.add(aSet);
         return JsonArray.from(categories);
     }
 
@@ -123,7 +118,7 @@ public class CBDataGenerator {
             }
             order.put("suborders", suborders);
             JsonDocument doc = JsonDocument.create(Integer.toString(order_id), order);
-            JsonDocument inserted = bucket.upsert(doc);
+            bucket.upsert(doc);
         }
     }
 
@@ -136,62 +131,77 @@ public class CBDataGenerator {
     private void connect() {
         if (this.db == null) {
             System.err.println("[ERROR] CBDataGenerator: CBConfig is null");
-            return;
+        } else {
+            // Create a cluster reference
+            cluster = this.db.getCluster();
+            // Connect to the bucket and open it
+            if (db.getPassword() != null)
+                bucket = cluster.openBucket(this.db.getBucket(), this.db.getPassword());
+            else
+                bucket = cluster.openBucket(this.db.getBucket());
         }
-
-        // Create a cluster reference
-        cluster = this.db.getCluster();
-        // Connect to the bucket and open it
-        if (db.getPassword() != null)
-            bucket = cluster.openBucket(this.db.getBucket(), this.db.getPassword());
-        else
-            bucket = cluster.openBucket(this.db.getBucket());
     }
 
     public String getRandomOrderState() {
         // nextInt((max - min) + 1) + min
-        int x = rd.nextInt(2 - 0 + 1) + 0;
-
+        int x = rd.nextInt(3);  // (((2 - 0) + 1) + 0)
+        String orderState;
         switch (x) {
             case 0:
-                return "PRE-AUTHORIZE";
+                orderState = "PRE-AUTHORIZE";
+                break;
             case 1:
-                return "AUTHORIZED";
+                orderState = "AUTHORIZED";
+                break;
             case 2:
-                return "PAID";
+                orderState = "PAID";
+                break;
+            default:
+                orderState = null;
         }
-        return null;
+        return orderState;
     }
 
     public String getRandomSuborderState() {
         // nextInt((max - min) + 1) + min
-        int x = rd.nextInt(1 - 0 + 1) + 0;
-
+        int x = rd.nextInt(2);  // (((1 - 0) + 1) + 0)
+        String suborderState;
         switch (x) {
             case 0:
-                return "ALLOCATED";
+                suborderState = "ALLOCATED";
+                break;
             case 1:
-                return "PICKED";
+                suborderState = "PICKED";
+                break;
+            default:
+                suborderState = null;
         }
-        return null;
+        return suborderState;
     }
 
     public String getRandomStore() {
         // nextInt((max - min) + 1) + min
-        int x = rd.nextInt(4 - 0 + 1) + 0;
-
+        int x = rd.nextInt(5);  // (((4 - 0) + 1) + 0)
+        String store;
         switch (x) {
             case 0:
-                return "Gijon";
+                store = "Gijon";
+                break;
             case 1:
-                return "Madrid";
+                store = "Madrid";
+                break;
             case 2:
-                return "Burgos";
+                store = "Burgos";
+                break;
             case 3:
-                return "Nancy";
+                store = "Nancy";
+                break;
             case 4:
-                return "Oxford";
+                store = "Oxford";
+                break;
+            default:
+                store = null;
         }
-        return null;
+        return store;
     }
 }

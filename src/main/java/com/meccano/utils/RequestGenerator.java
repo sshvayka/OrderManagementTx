@@ -13,21 +13,21 @@ import java.util.UUID;
 public class RequestGenerator implements Runnable {
 
     private KafkaBroker kafka;
-    private int n_orders;
+    private int nOrders;
     private int frequency;
     private int variety;
     private static Logger log = LogManager.getLogger(RequestGenerator.class);
 
     public RequestGenerator (KafkaBroker kafka, int num, int fre, int var){
         this.kafka = kafka;
-        this.n_orders = num;
+        this.nOrders = num;
         this.frequency = fre;
         this.variety = var;
     }
 
     public void run(){
         // Create the orders request
-        for (int i = 0; i < this.n_orders; i++){
+        for (int i = 0; i < this.nOrders; i++){
             // Generate a new order_id
             UUID order_id = UUID.randomUUID();
             // Generate the order items and requested quantities [always 3 items per order]
