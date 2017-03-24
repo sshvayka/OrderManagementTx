@@ -26,7 +26,7 @@ public class Main {
     // Hard-coded parameters
     private static int N_ORDER_MANAGEMENT = 15;
     private static int N_STOCK_VISIBILITY = 8;
-    private static int N_ORDER_FUFILLMENT = 13;
+    private static int N_ORDER_FULLFILMENT = 13;
     private static int N_SOURCING = 31;
     private static String BUCKET = "mecanno";
 
@@ -37,13 +37,6 @@ public class Main {
         // Details for couchbase connection. Localhost default
         CBConfig db = new CBConfig();
         db.setBucket(Main.BUCKET);
-
-        // Code for generating fake data in Couchbase
-        CBDataGenerator generator = new CBDataGenerator(db);
-        generator.createItems(500, 100);
-        //generator.createOrders(500);
-        generator.close();
-        log.info("Random items created");
 
         // Kafka topics creation for the whole scenario
         KafkaBroker kafka = new KafkaBroker();
@@ -77,7 +70,7 @@ public class Main {
 
         // OrderFulfillment pull
         ArrayList<Thread> orderFulfillment = new ArrayList<Thread>();
-        for (int i = 0; i < Main.N_ORDER_FUFILLMENT; i++){
+        for (int i = 0; i < Main.N_ORDER_FULLFILMENT; i++){
             Thread t = new Thread (new OrderFulfillment(kafka, db), "orderFulfillment"+i);
             t.start();
             orderFulfillment.add(t);
@@ -95,7 +88,7 @@ public class Main {
 
         // Control thread to kill all threads when all requests are processed
         Thread control = new Thread(new ControlThread(kafka, Main.N_ORDER_MANAGEMENT, Main.N_STOCK_VISIBILITY,
-                                                                Main.N_ORDER_FUFILLMENT, Main.N_SOURCING), "ControlThread");
+                                                                Main.N_ORDER_FULLFILMENT, Main.N_SOURCING), "ControlThread");
         control.start();
         control.join();
 

@@ -12,16 +12,12 @@ public class Pair<K,V> {
 
     @Override
     public boolean equals(Object obj){
-        boolean match;
         if (!(obj instanceof Pair))
-            match = false;
-        else if (obj == this)
-            match = true;
-        else {
-            Pair p = (Pair) obj;
-            match = this.key.equals(p.key) && this.value.equals(p.value);
-        }
-        return match;
+            return false;
+        if (obj == this)
+            return true;
+        Pair p = (Pair) obj;
+        return this.key.equals(((Pair) obj).key) && this.value.equals(((Pair) obj).value);
     }
 
     @Override

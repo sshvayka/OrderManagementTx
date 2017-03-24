@@ -32,62 +32,62 @@ public class SourcingOL extends MicroService {
 //    }
 
     private String getRandomStore(StockVisibilityResponse stock, OrderFulfillmentResponse allocations, String itemId, int quantity){
-        ArrayList<Pair<String, Integer>> stocks = stock.getStocks().get(itemId);
-        String result = null;
-
-        for (Pair<String, Integer> pair : stocks){
-            String sId = pair.getKey();
-            int sStock = pair.getValue();
-            log.debug("Item to query: " + itemId);
-            log.debug("Store to query: " + sId);
-            Hashtable<String, Integer> t = allocations.getResults().get(itemId);
-
-            int sAllocations = 0;
-            if (t.containsKey(sId)) {
-                sAllocations = t.get(sId);
-            }
-            if (sStock - sAllocations >= quantity) {
-                log.debug("[ALLOCATED] Item: " + itemId + " Store: " + sId + " Store stock: " + sStock + " Store allocations: " + sAllocations + " Requested: " + quantity);
-                result = sId;
-                break;
-            } else {
-                log.debug("[REJECTED] Item: " + itemId + " Store: " + sId + " Store stock: " + sStock + " Store allocations: " + sAllocations + " Requested: " + quantity);
-            }
-        }
-        if(result != null){
-            result +=  "-" + itemId;
-        }
-        return result;
-
-
-//        String storeId = null;
 //        ArrayList<Pair<String, Integer>> stocks = stock.getStocks().get(itemId);
-//        boolean allocated = false;
-//        for (int i = 0; i < stocks.size() && !allocated; i++){
-//            String sId = stocks.get(i).getKey();
-//            int storeStock = stocks.get(i).getValue();
+//        String result = null;
+//
+//        for (Pair<String, Integer> pair : stocks){
+//            String sId = pair.getKey();
+//            int sStock = pair.getValue();
 //            log.debug("Item to query: " + itemId);
 //            log.debug("Store to query: " + sId);
 //            Hashtable<String, Integer> t = allocations.getResults().get(itemId);
 //
-//            int storeAllocations;
-//            if (t.containsKey(sId))
-//                storeAllocations = t.get(sId);
-//            else
-//                storeAllocations = 0;
-//
-//            if (storeStock - storeAllocations >= quantity){
-//                log.debug("[ALLOCATED] Item: "+ itemId + " Store: " + sId + " Store stock: " + storeStock + " Store allocations: " + storeAllocations + " Requested: " + quantity);
-//                storeId = sId;
-//                allocated = true;
-//            } else{
-//                log.debug("[REJECTED] Item: " + itemId+" Store: " + sId + " Store stock: " + storeStock + " Store allocations: " + storeAllocations + " Requested: " + quantity);
-//                storeId = null;
+//            int sAllocations = 0;
+//            if (t.containsKey(sId)) {
+//                sAllocations = t.get(sId);
+//            }
+//            if (sStock - sAllocations >= quantity) {
+//                log.debug("[ALLOCATED] Item: " + itemId + " Store: " + sId + " Store stock: " + sStock + " Store allocations: " + sAllocations + " Requested: " + quantity);
+//                result = sId;
+//                break;
+//            } else {
+//                log.debug("[REJECTED] Item: " + itemId + " Store: " + sId + " Store stock: " + sStock + " Store allocations: " + sAllocations + " Requested: " + quantity);
 //            }
 //        }
-//        if (storeId == null)
-//            return null;
-//        return storeId + "-" + itemId;
+//        if(result != null){
+//            result = sId + "-" + itemId;
+//        }
+//        return result;
+
+
+        String storeId = null;
+        ArrayList<Pair<String, Integer>> stocks = stock.getStocks().get(itemId);
+        boolean allocated = false;
+        for (int i = 0; i < stocks.size() && !allocated; i++){
+            String sId = stocks.get(i).getKey();
+            int storeStock = stocks.get(i).getValue();
+            log.debug("Item to query: " + itemId);
+            log.debug("Store to query: " + sId);
+            Hashtable<String, Integer> t = allocations.getResults().get(itemId);
+
+            int storeAllocations;
+            if (t.containsKey(sId))
+                storeAllocations = t.get(sId);
+            else
+                storeAllocations = 0;
+
+            if (storeStock - storeAllocations >= quantity){
+                log.debug("[ALLOCATED] Item: "+ itemId + " Store: " + sId + " Store stock: " + storeStock + " Store allocations: " + storeAllocations + " Requested: " + quantity);
+                storeId = sId;
+                allocated = true;
+            } else{
+                log.debug("[REJECTED] Item: " + itemId+" Store: " + sId + " Store stock: " + storeStock + " Store allocations: " + storeAllocations + " Requested: " + quantity);
+                storeId = null;
+            }
+        }
+        if (storeId == null)
+            return null;
+        return storeId + "-" + itemId;
     }
 
     protected void processMessage(KafkaMessage message) {
@@ -101,7 +101,7 @@ public class SourcingOL extends MicroService {
         //create order document
         JsonObject order = JsonObject.create()
                 .put("_type", "Order")
-                .put("order_id", request.getOrderId().toString())
+                .put("orderId", request.getOrderId().toString())
                 .put("state", "ALLOCATED");
         JsonArray suborders = JsonArray.create();
         boolean success = true;
@@ -110,7 +110,7 @@ public class SourcingOL extends MicroService {
             //Get a random store with enough stock
             String id = this.getRandomStore(request.getStocks(), request.getAllocations(), stock_id, request.getQuantity().get(stock_id));
             // Create locking_document
-            if (id != null && tx.createLockDocument(id)) {
+            if (id != null && tx.createLockDocument(id)) { // TODO los archivos_lock se crean como null en couchbase, revisar
                 log.debug("Lock document created: " + id + "_lock");
 
                 // here we could use atomic operation to decrement phisic stock but we use the same
@@ -124,7 +124,7 @@ public class SourcingOL extends MicroService {
                 //create suborder
                 if(found != null) {
                     JsonObject suborder = JsonObject.create()
-                            .put("suborder_id", UUID.randomUUID().toString())
+                            .put("suborderId", UUID.randomUUID().toString())
                             .put("storeId", found.content().getString("storeId"))
                             .put("state", "ALLOCATED");
                     //create item for each suborder

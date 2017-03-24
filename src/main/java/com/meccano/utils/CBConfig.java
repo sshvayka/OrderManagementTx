@@ -5,8 +5,6 @@ import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 
 /**
- * Created by ruben.casado.tejedor on 31/08/2016.
- *
  * Class to encapsulate the connexion parameters for Couchbase.
  * In next releases, they should be parameters of the constructor
  */

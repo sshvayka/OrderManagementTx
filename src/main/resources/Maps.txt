@@ -16,7 +16,7 @@ function (doc, meta) {
 }
 
 /*
-Map Allocations Dev(el reduce se _sum)
+Map Allocations Dev(el reduce se _sum) ESTE
 ***************************************
 */
 function (doc, meta) {

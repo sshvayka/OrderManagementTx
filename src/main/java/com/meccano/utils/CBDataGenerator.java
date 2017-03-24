@@ -23,7 +23,7 @@ public class CBDataGenerator {
     }
 
     public void close(){
-//        cluster.disconnect();
+        cluster.disconnect();
     }
 
     public void createItems(int num, int variety){
@@ -94,20 +94,20 @@ public class CBDataGenerator {
             // create order details
             JsonObject order = JsonObject.create()
                     .put("_type", "Order")
-                    .put("order_id", Integer.toString(order_id))
+                    .put("orderId", Integer.toString(order_id))
                     .put("state", state);
             //create suborders
             JsonArray suborders = JsonArray.create();
             for (int j = 0; j < rd.nextInt(3) + 1; j++) {
                 JsonObject suborder = JsonObject.create()
-                        .put("suborder_id", Integer.toString(rd.nextInt()))
-                        .put("store_id", getRandomStore())
+                        .put("suborderId", Integer.toString(rd.nextInt()))
+                        .put("storeId", getRandomStore())
                         .put("state", getRandomSuborderState());
                 //create items for each suborder
                 JsonArray items = JsonArray.create();
                 for (int k = 0; k < rd.nextInt(5) + 1; k++) {
                     JsonObject item = JsonObject.create()
-                            .put("item_id", Integer.toString(rd.nextInt(variety)+1))
+                            .put("itemId", Integer.toString(rd.nextInt(variety)+1))
                             .put("price", Float.toString(rd.nextFloat() + 1))
                             .put("currency", "E")
                             .put("quantity", rd.nextInt(2) + 1);
@@ -203,5 +203,9 @@ public class CBDataGenerator {
                 store = null;
         }
         return store;
+    }
+
+    public Bucket getBucket() {
+        return bucket;
     }
 }

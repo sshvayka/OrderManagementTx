@@ -106,7 +106,7 @@ public class SourcingPL extends MicroService {
         for (JsonDocument block : blocks) {
             String document_id = block.id();
             long cas = block.cas();
-            super.getBucket().unlock(document_id, cas);
+            super.getBucket().unlock(document_id, cas);// TODO lanza TimeOut Exception, manejar este error
         }
     }
 
@@ -115,23 +115,23 @@ public class SourcingPL extends MicroService {
         // Create order document
         JsonObject order = JsonObject.create()
                 .put("_type", "Order")
-                .put("order_id", order_id)
+                .put("orderId", order_id)
                 .put("state", "ALLOCATED");
 
         // Create suborders - one for each item (could be improved to group items from the same store)
         JsonArray suborders = JsonArray.create();
         for (JsonDocument block : blocks) {
             JsonObject suborder = JsonObject.create()
-                    .put("suborder_id", UUID.randomUUID().toString())
-                    .put("store_id", block.content().getString("store_id"))
+                    .put("suborderId", UUID.randomUUID().toString())
+                    .put("storeId", block.content().getString("storeId"))
                     .put("state", "ALLOCATED");
             // Create item for each suborder
             JsonArray items = JsonArray.create();
             JsonObject item = JsonObject.create()
-                    .put("item_id", block.content().getString("item_id"))
+                    .put("itemId", block.content().getString("itemId"))
                     .put("price", block.content().getInt("price"))
                     .put("currency", block.content().getString("currency"))
-                    .put("quantity", quantity.get(block.content().getString("item_id")));
+                    .put("quantity", quantity.get(block.content().getString("itemId")));
             items.add(item);
             suborder.put("items", items);
             suborders.add(suborder);

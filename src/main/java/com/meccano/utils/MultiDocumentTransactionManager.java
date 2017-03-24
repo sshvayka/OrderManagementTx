@@ -21,7 +21,7 @@ public class MultiDocumentTransactionManager {
 //    private String owner;
     private String state;
 
-    private static Logger log = LogManager.getLogger(MultiDocumentTransactionManager.class.getName());
+    private static Logger log = LogManager.getLogger(MultiDocumentTransactionManager.class);
 
     public MultiDocumentTransactionManager(CBConfig db){
         this.db = db;
@@ -83,7 +83,7 @@ public class MultiDocumentTransactionManager {
     private void removeLockDocuments(){
         for (JsonDocument original_document : originalDocs) {
             String original_id = original_document.id();
-            this.bucket.remove(original_id + "_lock");
+//            this.bucket.remove(original_id + "_lock"); TODO esta linea provoca petadas multiples
         }
     }
 
@@ -91,18 +91,19 @@ public class MultiDocumentTransactionManager {
         this.state = "STARTED";
     }
 
-    public boolean createLockDocument(String document_id){
-        boolean result = true;
-        JsonDocument found = bucket.get(document_id);
+    public boolean createLockDocument(String documentId){
+        boolean result;
+        JsonDocument found = bucket.get(documentId);
         originalDocs.add(found);
 //        JsonObject object = found.content();
 
-        JsonDocument lock_document = JsonDocument.create(document_id + "_lock");
+        JsonDocument lock_document = JsonDocument.create(documentId + "_lock");
         try {
             bucket.upsert(lock_document);
-            log.debug("[TX] Saved document "+ lock_document.id());
+            log.debug("[TX] Saved document " + lock_document.id());
+            result = true;
         } catch (Exception e){
-            log.error("[ERROR] MultiDocumentTransactionManager: " + document_id + " already blocked");
+            log.error("[ERROR] MultiDocumentTransactionManager: " + documentId + " already blocked");
             result = false;
         }
         return result;
