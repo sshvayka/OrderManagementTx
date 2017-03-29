@@ -14,49 +14,49 @@ import java.util.*;
 
 public class SourcingPL extends MicroService {
 
-    private int locking_time;
+    private int lockingTime;
     private static Logger log = LogManager.getLogger(SourcingPL.class);
 
     public SourcingPL(KafkaBroker kafka, CBConfig db){
         super("SourcingPL", kafka,"Sourcing", db);
-        this.locking_time = 30;
+        this.lockingTime = 30;
     }
 
     public SourcingPL(KafkaBroker kafka, CBConfig db, int time){
         super("SourcingPL", kafka,"SourcingRequest", db);
-        this.locking_time = time;
+        this.lockingTime = time;
     }
 
-    private String getRandomStore(StockVisibilityResponse stock, OrderFulfillmentResponse allocations, String item_id, int quantity){
-        String store_id = null;
-        ArrayList<Pair<String, Integer>> stocks = stock.getStocks().get(item_id);
+    private String getRandomStore(StockVisibilityResponse stock, OrderFulfillmentResponse allocations, String itemId, int quantity){
+        String storeId = null;
+        ArrayList<Pair<String, Integer>> stocks = stock.getStocks().get(itemId);
         boolean allocated = false;
         for (int i = 0; i< stocks.size() && !allocated; i++){
             String s_id = stocks.get(i).getKey();
-            int store_stock = stocks.get(i).getValue();
-            log.debug("Item to query: " + item_id);
+            int storeStock = stocks.get(i).getValue();
+            log.debug("Item to query: " + itemId);
             log.debug("Store to query: " + s_id);
-            Hashtable<String,Integer> t = allocations.getResults().get(item_id);
+            Hashtable<String,Integer> t = allocations.getResults().get(itemId);
 
-            int store_allocations;
+            int storeAllocations;
             if (t.containsKey(s_id)){
-                store_allocations = t.get(s_id);
+                storeAllocations = t.get(s_id);
             } else {
-                store_allocations = 0;
+                storeAllocations = 0;
             }
 
-            if (store_stock - store_allocations >= quantity){
-                log.debug("[ALLOCATED] Item: "+item_id+" Store: "+s_id+ " Store stock: "+store_stock+ " Allocations store: "+store_allocations+ " Requested: "+quantity);
-                store_id = s_id;
+            if (storeStock - storeAllocations >= quantity){
+                log.debug("[ALLOCATED] Item: " + itemId + " Store: "+s_id+ " Store stock: " + storeStock + " Allocations store: " + storeAllocations + " Requested: " + quantity);
+                storeId = s_id;
                 allocated = true;
             } else {
-                log.debug("[REJECTED] Item: "+item_id+" Store: "+s_id+ " Store stock: "+store_stock+ " Allocations store: "+store_allocations+ " Requested: "+quantity);
-                store_id = null;
+                log.debug("[REJECTED] Item: " + itemId + " Store: "+s_id+ " Store stock: " + storeStock +  " Allocations store: " + storeAllocations + " Requested: " + quantity);
+                storeId = null;
             }
         }
-        if (store_id == null)
+        if (storeId == null)
             return null;
-        return store_id + "-" + item_id;
+        return storeId + "-" + itemId;
     }
 
     protected void processMessage(KafkaMessage message) {
@@ -64,14 +64,14 @@ public class SourcingPL extends MicroService {
         ArrayList<JsonDocument> blocks = new ArrayList<>();
 
         //iterate all item_id
-        for (String stock_id : request.getStocks().getStockId()) {
+        for (String stockId : request.getStocks().getStockId()) {
             //get a random store with enough stock
-            String id = this.getRandomStore(request.getStocks(), request.getAllocations(), stock_id, request.getQuantity().get(stock_id));
+            String id = this.getRandomStore(request.getStocks(), request.getAllocations(), stockId, request.getQuantity().get(stockId));
             //block the document, if it is already blocked the transaction is aborted
             try {
                 log.debug(request.getOrderId() + "Document to lock: " + id);
                 if (id != null) {
-                    JsonDocument found = super.getBucket().getAndLock(id, this.locking_time);
+                    JsonDocument found = super.getBucket().getAndLock(id, this.lockingTime);
                     blocks.add(found);
                 } else {
                     log.error("[ERROR] SourcingPL not enough elements");
@@ -94,9 +94,9 @@ public class SourcingPL extends MicroService {
     }
 
     // Cancel an on-going transaction
-    private void abort(UUID order_id, ArrayList<JsonDocument> blocks){
+    private void abort(UUID orderId, ArrayList<JsonDocument> blocks){
         this.unlockDocuments(blocks);
-        SourcingResponse body = new SourcingResponse(order_id,false);
+        SourcingResponse body = new SourcingResponse(orderId,false);
         // Put in kafka the response message
         KafkaMessage msg = new KafkaMessage("OrderManagement","SourcingResponse", body, this.getType(), "OrderManagement");
         super.getKafka().putMessage("OrderManagement", msg);
@@ -104,18 +104,18 @@ public class SourcingPL extends MicroService {
 
     private void unlockDocuments(ArrayList<JsonDocument> blocks){
         for (JsonDocument block : blocks) {
-            String document_id = block.id();
+            String documentId = block.id();
             long cas = block.cas();
-            super.getBucket().unlock(document_id, cas);// TODO lanza TimeOut Exception, manejar este error
+            super.getBucket().unlock(documentId, cas);
         }
     }
 
     // Create the Order document
-    private void createOrder(String order_id, ArrayList<JsonDocument> blocks, Hashtable<String,Integer> quantity){
+    private void createOrder(String orderId, ArrayList<JsonDocument> blocks, Hashtable<String,Integer> quantity){
         // Create order document
         JsonObject order = JsonObject.create()
                 .put("_type", "Order")
-                .put("orderId", order_id)
+                .put("orderId", orderId)
                 .put("state", "ALLOCATED");
 
         // Create suborders - one for each item (could be improved to group items from the same store)
@@ -137,9 +137,9 @@ public class SourcingPL extends MicroService {
             suborders.add(suborder);
         }
         order.put("suborders", suborders);
-        JsonDocument doc = JsonDocument.create(order_id, order);
+        JsonDocument doc = JsonDocument.create(orderId, order);
         super.getBucket().upsert(doc);
-        log.debug(order_id + " - Order saved in CouchBase");
+        log.debug(orderId + " - Order saved in CouchBase");
     }
 
     protected void exit() {

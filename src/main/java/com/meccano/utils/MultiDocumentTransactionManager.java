@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class MultiDocumentTransactionManager {
 
@@ -44,8 +45,8 @@ public class MultiDocumentTransactionManager {
         }
     }
 
-    public void partialCommit(String document_id){
-        this.updatedIds.add(document_id);
+    public void partialCommit(String docId){
+        this.updatedIds.add(docId);
         this.state = "PARTIAL_COMMIT";
     }
 
@@ -58,11 +59,11 @@ public class MultiDocumentTransactionManager {
         this.bucket.close();
     }
 
-    protected JsonDocument getOriginal(String id){
+    protected JsonDocument getOriginal(String docId){
         JsonDocument result = null;
-        for (JsonDocument d : this.originalDocs) {
-            if (d.id().equals(id)) {
-                result = d;
+        for (JsonDocument origDoc : this.originalDocs) {
+            if (origDoc.id().equals(docId)) {
+                result = origDoc;
                 break;
             }
         }
@@ -71,9 +72,9 @@ public class MultiDocumentTransactionManager {
 
     public void rollback(){
         for (String updated_id : updatedIds) {
-            JsonDocument original = this.getOriginal(updated_id);
-            if (original != null)
-                bucket.upsert(original);
+            JsonDocument origDoc = this.getOriginal(updated_id);
+            if (origDoc != null)
+                bucket.upsert(origDoc);
             else
                 log.error("[ERROR] MultiDocumentTransactionManager: Rollback error");
         }
@@ -81,9 +82,12 @@ public class MultiDocumentTransactionManager {
     }
 
     private void removeLockDocuments(){
-        for (JsonDocument original_document : originalDocs) {
-            String original_id = original_document.id();
-//            this.bucket.remove(original_id + "_lock"); TODO esta linea provoca petadas multiples
+        for (JsonDocument origDoc : originalDocs) {
+            String origId = origDoc.id();
+            log.info("LOCK a borrar: " + origId + "_lock");
+            if (this.bucket.exists(origId)) {
+                this.bucket.remove(origId + "_lock");
+            }
         }
     }
 
@@ -91,19 +95,19 @@ public class MultiDocumentTransactionManager {
         this.state = "STARTED";
     }
 
-    public boolean createLockDocument(String documentId){
+    public boolean createLockDocument(String docId){
         boolean result;
-        JsonDocument found = bucket.get(documentId);
-        originalDocs.add(found);
-//        JsonObject object = found.content();
-
-        JsonDocument lock_document = JsonDocument.create(documentId + "_lock");
         try {
-            bucket.upsert(lock_document);
-            log.debug("[TX] Saved document " + lock_document.id());
+            JsonDocument origDoc = bucket.get(docId);
+            originalDocs.add(origDoc);
+            JsonObject contOrigDoc = origDoc.content();
+            JsonDocument lockDoc = JsonDocument.create(docId + "_lock", contOrigDoc);
+
+            bucket.upsert(lockDoc);
+            log.debug("[TX] Saved document " + lockDoc.id());
             result = true;
         } catch (Exception e){
-            log.error("[ERROR] MultiDocumentTransactionManager: " + documentId + " already blocked");
+            log.error("[ERROR] MultiDocumentTransactionManager: " + docId + " already blocked");
             result = false;
         }
         return result;

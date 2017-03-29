@@ -12,8 +12,6 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 
 /**
- * Created by ruben.casado.tejedor on 30/08/2016.
- *
  * Entry point to execute the scenario. The concurrency (number of threads of each microservice) and
  * DB connexion details are hard-coded here. They could be changed to be read as parameter for automating
  * the execution of the process with different configurations.
@@ -82,7 +80,6 @@ public class Main {
 //            Thread t = new Thread(new SourcingPL(kafka, db));
             Thread t = new Thread(new SourcingOL(kafka, db));
             t.start();
-//            t.join();
             sourcing.add(t);
         }
 

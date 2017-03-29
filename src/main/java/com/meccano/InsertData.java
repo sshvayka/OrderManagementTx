@@ -20,7 +20,7 @@ public class InsertData {
 
         // Code for generating fake data in Couchbase
         CBDataGenerator generator = new CBDataGenerator(db);
-        generator.createItems(500, 100);
+        generator.createItems(100, 5);
 //        generator.createOrders(500);
 //        generator.close();
         log.info("Random items created");
