@@ -16,6 +16,7 @@ public class OrderManagement extends MicroService {
 
     public OrderManagement(KafkaBroker kafka, CBConfig db, String path) throws IOException {
         super ("OrderManagement", kafka, "OrderManagement", db);
+        log.info("OrderManagement MS thread created");
         this.path = path;
     }
 
@@ -106,16 +107,12 @@ public class OrderManagement extends MicroService {
 
     }
 
+    @Override
     protected void exit() {
         try {
-            //this.bucket.close();
-            log.info("OM - bucket closed");
-            //this.cluster.disconnect();
-            //log.info("OM - cluster disconnected");
             if (this.file != null )
                 this.file.close();
             log.info("OrderManagement exit");
-            super.getDb().getCluster().disconnect();
         } catch (Exception e) {
             log.error(" Exit: " + e.toString());
         }

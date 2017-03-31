@@ -19,7 +19,7 @@ public class ControlThread implements Runnable {
     private int nOrderFullfilment;
     private int nSourcing;
 
-    private static Logger log = LogManager.getLogger(Main.class);
+    private static Logger log = LogManager.getLogger(ControlThread.class);
 
     public ControlThread(KafkaBroker kafka, int nOrderManagement, int nStockVisibility, int nOrderFullfilment, int nSourcing){
         this.kafka = kafka;

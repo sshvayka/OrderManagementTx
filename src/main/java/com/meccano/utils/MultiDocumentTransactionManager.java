@@ -4,6 +4,7 @@ import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.error.DocumentDoesNotExistException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,12 +37,9 @@ public class MultiDocumentTransactionManager {
             log.error("[ERROR] MultiDocumentTransactionManager: CBConfig is null");
         } else {
             // Create a cluster reference
-            cluster = this.db.getCluster();
-            // Connect to the bucket and open it
-            if (db.getPassword() != null)
-                bucket = cluster.openBucket(this.db.getBucket(), this.db.getPassword());
-            else
-                bucket = cluster.openBucket(this.db.getBucket());
+            this.cluster = db.getCluster();
+            // Create a bucket reference
+            this.bucket = db.getBucket();
         }
     }
 
@@ -84,9 +82,14 @@ public class MultiDocumentTransactionManager {
     private void removeLockDocuments(){
         for (JsonDocument origDoc : originalDocs) {
             String origId = origDoc.id();
-            log.info("LOCK a borrar: " + origId + "_lock");
-            if (this.bucket.exists(origId)) {
-                this.bucket.remove(origId + "_lock");
+            String lockId = origId + "_lock";
+//            log.info("LOCK a borrar: " + origId + "_lock");
+            if (this.bucket.exists(lockId)) {
+                try {
+                    this.bucket.remove(lockId);
+                } catch (DocumentDoesNotExistException e){
+//                    log.error("Lock document \"" + lockId + "\" already deleted");
+                }
             }
         }
     }

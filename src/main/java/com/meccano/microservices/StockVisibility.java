@@ -60,6 +60,5 @@ public class StockVisibility extends MicroService {
     @Override
     protected void exit() {
         log.info("StockVisibility exit");
-//        db.cluster.disconnect();
     }
 }

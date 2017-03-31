@@ -133,12 +133,9 @@ public class CBDataGenerator {
             System.err.println("[ERROR] CBDataGenerator: CBConfig is null");
         } else {
             // Create a cluster reference
-            cluster = this.db.getCluster();
-            // Connect to the bucket and open it
-            if (db.getPassword() != null)
-                bucket = cluster.openBucket(this.db.getBucket(), this.db.getPassword());
-            else
-                bucket = cluster.openBucket(this.db.getBucket());
+            this.cluster = this.db.getCluster();
+            // Create a bucket reference
+            this.bucket = this.db.getBucket();
         }
     }
 

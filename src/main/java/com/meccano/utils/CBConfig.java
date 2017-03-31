@@ -1,5 +1,6 @@
 package com.meccano.utils;
 
+import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
@@ -11,35 +12,42 @@ import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 public class CBConfig {
 
     private CouchbaseCluster cluster;
+    private Bucket bucket;
     private String clusterURL;
-    private String bucket;
+    private String bucketName;
     private String password;
-    private CouchbaseEnvironment env = DefaultCouchbaseEnvironment.create();
+//    private CouchbaseEnvironment env = DefaultCouchbaseEnvironment.create();
 
-    public CBConfig(){
-        this.clusterURL = "localhost";
-        this.bucket = "default";
+    public CBConfig(String clusterURL, String bucketName){
+        this.clusterURL = clusterURL;
+        this.bucketName = bucketName;
         this.password = null;
-        this.cluster = CouchbaseCluster.create(env, this.clusterURL);
+        this.cluster = CouchbaseCluster.create(this.clusterURL);
+        this.bucket = cluster.openBucket(bucketName);
     }
 
-    public CBConfig(String clusterURL, String bucket, String pass){
+    public CBConfig(String clusterURL, String bucketName, String pass){
         this.clusterURL = clusterURL;
-        this.bucket = bucket;
+        this.bucketName = bucketName;
         this.password = pass;
-        this.cluster = CouchbaseCluster.create(env, this.clusterURL);
+        this.cluster = CouchbaseCluster.create(this.clusterURL);
+        // Connect to the bucket and open it
+        if (pass != null)
+            this.bucket = cluster.openBucket(bucketName, pass);
+        else
+            this.bucket = cluster.openBucket(bucketName);
     }
 
     public CouchbaseCluster getCluster() {
         return cluster;
     }
 
-    public String getBucket() {
-        return bucket;
+    public String getBucketName() {
+        return bucketName;
     }
 
-    public void setBucket(String bucket) {
-        this.bucket = bucket;
+    public Bucket getBucket(){
+        return bucket;
     }
 
     public String getPassword() {
@@ -48,6 +56,5 @@ public class CBConfig {
 
     public void exit (){
         cluster.disconnect();
-        env.shutdown();
     }
 }

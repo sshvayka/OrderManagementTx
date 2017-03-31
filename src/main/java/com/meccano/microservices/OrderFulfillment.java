@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 public class OrderFulfillment extends MicroService {
 
@@ -20,6 +21,7 @@ public class OrderFulfillment extends MicroService {
 
     public OrderFulfillment (KafkaBroker kafka, CBConfig db){
         super("OrderFulfillment", kafka, "OrderFulfillment", db);
+        log.info("OrderFulfillment MS thread created");
     }
 
     protected void processMessage(KafkaMessage message) {
@@ -56,6 +58,5 @@ public class OrderFulfillment extends MicroService {
 
     protected void exit() {
         log.info("OrderFulfillment exit");
-//        db.cluster.disconnect();
     }
 }

@@ -36,8 +36,6 @@ public abstract class MicroService implements Runnable {
         this.instance = UUID.randomUUID();
         this.topicSubscription = topic;
 
-        log.info("Microservice thread created");
-
         if (db != null) {
             this.db = db;
             this.finish = false;
@@ -55,37 +53,9 @@ public abstract class MicroService implements Runnable {
             return;
         }
         // Use the cluster connection
-        cluster = db.getCluster();
-        //        cluster = CouchbaseCluster.create(env, "localhost"); // Puesto a localhost por defecto TODO hacer dinamico
-        // Connect to the bucket and open it
-        if (db.getPassword() != null)
-            bucket = cluster.openBucket(db.getBucket(), db.getPassword());
-        else
-            bucket = cluster.openBucket(db.getBucket());
-//        this.type = type;
-//        this.instance = UUID.randomUUID();
-//        this.topicSubscription = topic;
-//
-//        log.info("Microservice thread created");
-//
-//        if (db != null && kafka != null) {
-//            this.db = db;
-//            this.kafka = kafka;
-//            this.finish = false;
-//            // Use the cluster connection
-//            this.cluster = db.getCluster();
-//            // Connect to the bucket and open it
-//            if (db.getPassword() != null)
-//                this.bucket = cluster.openBucket(db.getBucket(), db.getPassword());
-//            else
-//                this.bucket = cluster.openBucket(db.getBucket());
-//        } else if (db == null){
-//            log.error("[ERROR] MS " + type + " generation: CBConfig is null");
-//            this.finish = true;
-//        } else {
-//            log.error("[ERROR] MS " + type + " generation: Kafka is null");
-//            this.finish = true;
-//        }
+        this.cluster = db.getCluster();
+        // Create a bucket reference
+        this.bucket = db.getBucket();
     }
 
     public void run(){

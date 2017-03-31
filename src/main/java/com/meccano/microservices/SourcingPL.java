@@ -79,7 +79,7 @@ public class SourcingPL extends MicroService {
                     return;
                 }
             } catch (Exception e) {
-                log.error("[ERROR] SourcingPL blocking element " + e.toString());
+                log.error("[ERROR] SourcingPL blocking element");
                 this.abort(request.getOrderId(), blocks);
                 return;
             }
@@ -105,8 +105,8 @@ public class SourcingPL extends MicroService {
     private void unlockDocuments(ArrayList<JsonDocument> blocks){
         for (JsonDocument block : blocks) {
             String documentId = block.id();
-            long cas = block.cas();
-            super.getBucket().unlock(documentId, cas);
+//            long cas = block.cas();
+            super.getBucket().unlock(block);
         }
     }
 

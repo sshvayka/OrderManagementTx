@@ -3,7 +3,6 @@ package com.meccano;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.microservices.*;
 import com.meccano.utils.CBConfig;
-import com.meccano.utils.CBDataGenerator;
 import com.meccano.utils.ControlThread;
 import com.meccano.utils.RequestGenerator;
 import org.apache.logging.log4j.LogManager;
@@ -26,15 +25,15 @@ public class Main {
     private static int N_STOCK_VISIBILITY = 8;
     private static int N_ORDER_FULLFILMENT = 13;
     private static int N_SOURCING = 31;
+    private static String HOST = "localhost";
     private static String BUCKET = "mecanno";
 
-    public static void main(String[] args) throws Exception{
+    public static void main (String[] args) throws Exception{
         long init = System.currentTimeMillis();
         log.info("START");
 
         // Details for couchbase connection. Localhost default
-        CBConfig db = new CBConfig();
-        db.setBucket(Main.BUCKET);
+        CBConfig db = new CBConfig(Main.HOST, Main.BUCKET);
 
         // Kafka topics creation for the whole scenario
         KafkaBroker kafka = new KafkaBroker();
@@ -49,49 +48,41 @@ public class Main {
         orderRequests.start();
         //orderRequests.join();
         log.info("RequestGenerator created");
-
+        // TODO las listas que habia antes, para que servian?
         // OrderManagement pull
-        ArrayList<Thread> orderManagement = new ArrayList<Thread>();
         for (int i = 0; i < Main.N_ORDER_MANAGEMENT; i++){
             Thread t = new Thread (new OrderManagement(kafka, db, "out.txt"), "OrderManagement"+i);
             t.start();
-            orderManagement.add(t);
         }
 
         // StockVisibility pull
-        ArrayList<Thread> stockVisibility = new ArrayList<Thread>();
         for (int i = 0; i < Main.N_STOCK_VISIBILITY; i++){
             Thread t = new Thread(new StockVisibility(kafka, db), "StockVisibility"+i);
             t.start();
-            stockVisibility.add(t);
         }
 
         // OrderFulfillment pull
-        ArrayList<Thread> orderFulfillment = new ArrayList<Thread>();
         for (int i = 0; i < Main.N_ORDER_FULLFILMENT; i++){
             Thread t = new Thread (new OrderFulfillment(kafka, db), "orderFulfillment"+i);
             t.start();
-            orderFulfillment.add(t);
         }
 
         // Sourcing pull
-        ArrayList<Thread> sourcing = new ArrayList<Thread>();
         for (int i = 0; i < Main.N_SOURCING; i++){
-//            Thread t = new Thread(new SourcingPL(kafka, db));
-            Thread t = new Thread(new SourcingOL(kafka, db));
+            Thread t = new Thread(new SourcingPL(kafka, db));
+//            Thread t = new Thread(new SourcingOL(kafka, db));
             t.start();
-            sourcing.add(t);
         }
 
         // Control thread to kill all threads when all requests are processed
         Thread control = new Thread(new ControlThread(kafka, Main.N_ORDER_MANAGEMENT, Main.N_STOCK_VISIBILITY,
-                                                                Main.N_ORDER_FULLFILMENT, Main.N_SOURCING), "ControlThread");
+                Main.N_ORDER_FULLFILMENT, Main.N_SOURCING), "ControlThread");
         control.start();
         control.join();
 
         db.exit(); // Cierre de conexiones
         log.info("FINISH");
         long total = System.currentTimeMillis() - init;
-        log.info("Time: " + total );
+        log.info("Time: " + total);
     }
 }
