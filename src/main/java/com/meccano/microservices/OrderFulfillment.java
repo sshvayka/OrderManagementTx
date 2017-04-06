@@ -13,7 +13,6 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 public class OrderFulfillment extends MicroService {
 

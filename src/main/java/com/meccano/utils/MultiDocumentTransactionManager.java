@@ -15,7 +15,7 @@ public class MultiDocumentTransactionManager {
 
     private CBConfig db;
     private CouchbaseCluster cluster;
-    private Bucket bucket;
+    private Bucket bucket; // TODO crear bucket en cada clase que lo use
     private ArrayList<String> docsIds;
     private ArrayList<JsonDocument> originalDocs;
     private ArrayList<String> updatedIds;

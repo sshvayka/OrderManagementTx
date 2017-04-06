@@ -76,9 +76,8 @@ public class CBDataGenerator {
                     set.add("MODA");
             }
         }
-        List<String> categories= new ArrayList<>();
-        for (String aSet : set)
-            categories.add(aSet);
+        List<String> categories = new ArrayList<>();
+        categories.addAll(set);
         return JsonArray.from(categories);
     }
 
@@ -91,19 +90,19 @@ public class CBDataGenerator {
         for (int i = 0; i < num; i++) {
             int order_id = Math.abs(rd.nextInt());
             String state = this.getRandomOrderState();
-            // create order details
+            // Create order details
             JsonObject order = JsonObject.create()
                     .put("_type", "Order")
                     .put("orderId", Integer.toString(order_id))
                     .put("state", state);
-            //create suborders
+            // Create suborders
             JsonArray suborders = JsonArray.create();
             for (int j = 0; j < rd.nextInt(3) + 1; j++) {
                 JsonObject suborder = JsonObject.create()
                         .put("suborderId", Integer.toString(rd.nextInt()))
                         .put("storeId", getRandomStore())
                         .put("state", getRandomSuborderState());
-                //create items for each suborder
+                // Create items for each suborder
                 JsonArray items = JsonArray.create();
                 for (int k = 0; k < rd.nextInt(5) + 1; k++) {
                     JsonObject item = JsonObject.create()

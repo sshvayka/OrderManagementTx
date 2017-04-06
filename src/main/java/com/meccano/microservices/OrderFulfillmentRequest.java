@@ -17,7 +17,7 @@ public class OrderFulfillmentRequest implements MessageBody {
         this.itemId = sr.getStockId();
         this.stockVisibilityResponse = sr;
 
-        //get stores
+        // Get stores
         Collection<ArrayList<Pair<String, Integer>>> stocks = sr.getStocks().values();
         Set<String> set = new HashSet<>();
         for (ArrayList<Pair<String, Integer>> current : stocks) {

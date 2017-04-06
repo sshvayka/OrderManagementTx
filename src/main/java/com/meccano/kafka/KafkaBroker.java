@@ -18,7 +18,7 @@ public class KafkaBroker {
     private static Logger log = LogManager.getLogger(KafkaBroker.class);
 
     public KafkaBroker(){
-        topics = new ArrayList<KafkaTopic>();
+        topics = new ArrayList<>();
     }
 
     public KafkaBroker(List<String> names){
@@ -76,20 +76,20 @@ public class KafkaBroker {
             topic.put(msg);
     }
 
-    public void removeTopic(String topic_name){
+    public void removeTopic(String topicName){
         Iterator<KafkaTopic> itr = topics.iterator();
         KafkaTopic topic;
         while (itr.hasNext()) {
             topic = itr.next();
-            if (topic.getName().equals(topic_name)) {
+            if (topic.getName().equals(topicName)) {
                 itr.remove();
                 break;
             }
         }
     }
 
-    public int topicSize(String topic_name){
-        KafkaTopic topic = this.getTopic(topic_name);
+    public int topicSize(String topicName){
+        KafkaTopic topic = this.getTopic(topicName);
         int size = -1;
         if (topic != null)
             size = topic.size();

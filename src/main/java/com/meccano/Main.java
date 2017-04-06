@@ -8,8 +8,6 @@ import com.meccano.utils.RequestGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-
 /**
  * Entry point to execute the scenario. The concurrency (number of threads of each microservice) and
  * DB connexion details are hard-coded here. They could be changed to be read as parameter for automating
@@ -28,7 +26,7 @@ public class Main {
     private static String HOST = "localhost";
     private static String BUCKET = "mecanno";
 
-    public static void main (String[] args) throws Exception{
+    public static void main (String[] args) throws Exception {
         long init = System.currentTimeMillis();
         log.info("START");
 
@@ -48,7 +46,6 @@ public class Main {
         orderRequests.start();
         //orderRequests.join();
         log.info("RequestGenerator created");
-        // TODO las listas que habia antes, para que servian?
         // OrderManagement pull
         for (int i = 0; i < Main.N_ORDER_MANAGEMENT; i++){
             Thread t = new Thread (new OrderManagement(kafka, db, "out.txt"), "OrderManagement"+i);
@@ -69,8 +66,8 @@ public class Main {
 
         // Sourcing pull
         for (int i = 0; i < Main.N_SOURCING; i++){
-            Thread t = new Thread(new SourcingPL(kafka, db));
-//            Thread t = new Thread(new SourcingOL(kafka, db));
+//            Thread t = new Thread(new SourcingPL(kafka, db));
+            Thread t = new Thread(new SourcingOL(kafka, db));
             t.start();
         }
 

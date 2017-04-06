@@ -2,8 +2,6 @@ package com.meccano.utils;
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 
 /**
  * Class to encapsulate the connexion parameters for Couchbase.
@@ -16,7 +14,6 @@ public class CBConfig {
     private String clusterURL;
     private String bucketName;
     private String password;
-//    private CouchbaseEnvironment env = DefaultCouchbaseEnvironment.create();
 
     public CBConfig(String clusterURL, String bucketName){
         this.clusterURL = clusterURL;

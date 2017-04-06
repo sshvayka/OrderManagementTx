@@ -31,7 +31,7 @@ public class SourcingPL extends MicroService {
         String storeId = null;
         ArrayList<Pair<String, Integer>> stocks = stock.getStocks().get(itemId);
         boolean allocated = false;
-        for (int i = 0; i< stocks.size() && !allocated; i++){
+        for (int i = 0; i < stocks.size() && !allocated; i++){
             String s_id = stocks.get(i).getKey();
             int storeStock = stocks.get(i).getValue();
             log.debug("Item to query: " + itemId);

@@ -45,7 +45,7 @@ public class RequestGenerator implements Runnable {
     }
 
     private ArrayList<Pair<String, Integer>> getRandomItemsAndQuantities(int number, int variety){
-        Random rnd= new Random(System.currentTimeMillis());
+        Random rnd = new Random(System.currentTimeMillis());
         ArrayList<Pair<String, Integer>> items = new ArrayList<Pair<String, Integer>>();
         for (int i = 0; i < number; i++){
             Integer r = rnd.nextInt(variety) + 1;

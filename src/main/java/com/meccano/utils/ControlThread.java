@@ -1,6 +1,5 @@
 package com.meccano.utils;
 
-import com.meccano.Main;
 import com.meccano.kafka.KafkaBroker;
 import com.meccano.kafka.KafkaMessage;
 import org.apache.logging.log4j.LogManager;
