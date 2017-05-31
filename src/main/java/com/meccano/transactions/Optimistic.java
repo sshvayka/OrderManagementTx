@@ -46,16 +46,16 @@ public class Optimistic implements Protocol{
     }
 
     @Override
-    /* TODO en caso de que se haya modificado un documento, a la hora de hacer rollback, si voy a restaurar un documento que ha sido modificado en Couchbase, problema. Hay que lanzar excepcion, no se puede salvar */
+    /* TODO en caso de que se haya modificado un documento, a la hora de hacer abort, si voy a restaurar un documento que ha sido modificado en Couchbase, problema. Hay que lanzar excepcion, no se puede salvar */
     /* TODO decidir si repetir transaccion entera en ese caso */
-    public void rollback() {
-        this.state = "ROLLBACK";
+    public void abort() {
+        this.state = "ABORT";
         for (String updatedDocId : updatedDocs.keySet()){
             JsonDocument origDoc = originalDocs.get(updatedDocId);
             if (origDoc != null)
                 bucket.upsert(origDoc);
             else
-                log.error("Rollback error"); // TODO si falla el rollback, ¿seguir o abortar?
+                log.error("Abort error"); // TODO si falla el abort, ¿seguir o abortar?
         }
         unlockDocuments(blockedDocs);
     }

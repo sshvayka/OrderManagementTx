@@ -12,7 +12,7 @@ public interface Protocol {
 
     void commit ();
 
-    void rollback ();
+    void abort ();
 
     void close ();
 

@@ -61,16 +61,16 @@ public class Pessimistic implements Protocol{
     }
 
     @Override
-    public void rollback () {
-        this.state = "ROLLBACK";
+    public void abort () {
+        this.state = "ABORT";
         for (String updatedDocId : updatedDocs.keySet()) {
             JsonDocument origDoc = originalDocs.get(updatedDocId);
             if (origDoc != null)
                 bucket.upsert(origDoc);
             else
-                log.error("Rollback error"); // TODO si falla el rollback, ¿seguir o abortar?
+                log.error("Abort error"); // TODO si falla el abort, ¿seguir o abortar?
         }
-        this.state = "ROLLBACKED";
+        this.state = "ABORTED";
     }
 
     @Override

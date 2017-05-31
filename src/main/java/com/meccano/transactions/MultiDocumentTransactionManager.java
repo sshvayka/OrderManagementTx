@@ -37,8 +37,8 @@ public class MultiDocumentTransactionManager {
         this.protocol.begin(docIds);
     }
 
-    public void rollback() {
-        this.protocol.rollback();
+    public void abort() {
+        this.protocol.abort();
     }
 
     public void commit() {
