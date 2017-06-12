@@ -15,7 +15,7 @@ public class TransactionContext {
 
     private TransactionID idTransaction;
     private String idCreator;
-    private List<TransactionID> listIds;
+    private List<String> listIds;
     private Timestamp timestamp;
     private int tMaxLife;
     private int numIntentos;
@@ -52,11 +52,11 @@ public class TransactionContext {
         this.idCreator = idCreator;
     }
 
-    public List<TransactionID> getListIds() {
+    public List<String> getListIds() {
         return listIds;
     }
 
-    public void setListIds(List<TransactionID> listIds) {
+    public void setListIds(List<String> listIds) {
         this.listIds = listIds;
     }
 
